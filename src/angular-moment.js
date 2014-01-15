@@ -2,6 +2,38 @@
 
 angular.module('angular-momentjs', [])
 
+.provider('$moment', function $momentProvider() {
+  var config = {
+    defaultViewFormat: 'L',
+    defaultModelFormat: moment.defaultFormat
+  };
+
+  this.defaultViewFormat = function(format) {
+    if (angular.isString(format))
+      config.defaultViewFormat = format;
+    return this;
+  };
+
+  this.defaultModelFormat = function(format) {
+    if (angular.isString(format))
+      config.defaultModelFormat = format;
+    return this;
+  };
+
+  this.$get = function() {
+    try {
+      Object.defineProperty(moment, 'defaultViewFormat', {
+        value: config.defaultViewFormat
+      });
+      Object.defineProperty(moment, 'defaultModelFormat', {
+        value: config.defaultModelFormat
+      });
+    }
+    catch(err) { angular.extend(moment, config); }
+    return moment;
+  };
+
+})
 
 .directive('input', [function inputDirective() {
   var defaultFormat = 'L',
