@@ -3,10 +3,22 @@
 angular.module('angular-momentjs', [])
 
 .provider('$moment', function $momentProvider() {
+  // Strict parsing has trouble in Moment.js v2.3—2.5 with short tokens
+  // E.g. 1-31-2000, M-D-YYYY is invalid.
   var config = {
+    strict: true,
     defaultViewFormat: 'L',
-    defaultModelFormat: moment.defaultFormat
+    defaultModelFormat: moment.defaultFormat,
+    parseFormat: parseFormat
   };
+
+  // For parsing locale-dependent date formats (L, LL, etc.) 
+  function parseFormat (format) {
+    format = format || '';
+    if (format.match(/l/i))
+      return moment().lang()._longDateFormat[format] || format;
+    return format;
+  }
 
   this.defaultViewFormat = function(format) {
     if (angular.isString(format))
@@ -20,13 +32,25 @@ angular.module('angular-momentjs', [])
     return this;
   };
 
+  this.strict = function(bool) {
+    if (typeof bool === 'boolean')
+      config.strict = bool;
+    return this;
+  };
+
   this.$get = function() {
     try {
+      Object.defineProperty(moment, 'strict', {
+        value: config.strict
+      });
       Object.defineProperty(moment, 'defaultViewFormat', {
         value: config.defaultViewFormat
       });
       Object.defineProperty(moment, 'defaultModelFormat', {
         value: config.defaultModelFormat
+      });
+      Object.defineProperty(moment, 'parseFormat', {
+        value: config.parseFormat
       });
     }
     catch(err) { angular.extend(moment, config); }
