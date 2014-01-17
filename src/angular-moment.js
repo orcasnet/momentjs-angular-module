@@ -6,14 +6,14 @@ angular.module('angular-momentjs', [])
   // Strict parsing has trouble in Moment.js v2.3—2.5 with short tokens
   // E.g. 1-31-2000, M-D-YYYY is invalid.
   var config = {
-    strict: true,
-    defaultViewFormat: 'L',
-    defaultModelFormat: moment.defaultFormat,
-    parseFormat: parseFormat
+    $strict: true,
+    $defaultViewFormat: 'L',
+    $defaultModelFormat: moment.defaultFormat,
+    $parseFormat: $parseFormat
   };
 
   // For parsing locale-dependent date formats (L, LL, etc.) 
-  function parseFormat (format) {
+  function $parseFormat (format) {
     format = format || '';
     if (format.match(/l/i))
       return moment().lang()._longDateFormat[format] || format;
@@ -22,35 +22,37 @@ angular.module('angular-momentjs', [])
 
   this.defaultViewFormat = function(format) {
     if (angular.isString(format))
-      config.defaultViewFormat = format;
+      config.$defaultViewFormat = format;
     return this;
   };
 
   this.defaultModelFormat = function(format) {
     if (angular.isString(format))
-      config.defaultModelFormat = format;
+      config.$defaultModelFormat = format;
     return this;
   };
 
   this.strict = function(bool) {
     if (typeof bool === 'boolean')
-      config.strict = bool;
+      config.$strict = bool;
     return this;
   };
 
   this.$get = function() {
+    if (angular.isDefined(moment.$strict))
+      return moment;
     try {
-      Object.defineProperty(moment, 'strict', {
-        value: config.strict
+      Object.defineProperty(moment, '$strict', {
+        value: config.$strict
       });
-      Object.defineProperty(moment, 'defaultViewFormat', {
-        value: config.defaultViewFormat
+      Object.defineProperty(moment, '$defaultViewFormat', {
+        value: config.$defaultViewFormat
       });
-      Object.defineProperty(moment, 'defaultModelFormat', {
-        value: config.defaultModelFormat
+      Object.defineProperty(moment, '$defaultModelFormat', {
+        value: config.$defaultModelFormat
       });
-      Object.defineProperty(moment, 'parseFormat', {
-        value: config.parseFormat
+      Object.defineProperty(moment, '$parseFormat', {
+        value: config.$parseFormat
       });
     }
     catch(err) { angular.extend(moment, config); }
@@ -75,10 +77,10 @@ angular.module('angular-momentjs', [])
         if (!ctrl)
           return;
         
-        var setPlaceholder = function(format) { element.attr('placeholder', $moment.parseFormat(format)); },
+        var setPlaceholder = function(format) { element.attr('placeholder', $moment.$parseFormat(format)); },
             // Formats may be overridden if attr.(view|model)Format or attr.format is set
-            viewFormat  = $moment.defaultViewFormat,
-            modelFormat = $moment.defaultModelFormat,
+            viewFormat  = $moment.$defaultViewFormat,
+            modelFormat = $moment.$defaultModelFormat,
             // Min/max must be reparsed using view/model formats to account for differences
             // in date specificity. E.g., if min is '01-30-2000' and viewFormat is 'MM-YYYY'
             // and the model value is '01-2000'. 
@@ -127,7 +129,7 @@ angular.module('angular-momentjs', [])
               momentMin = $moment(minAttr[0], minAttr[1]);
             else if (minAttr && angular.isString(minAttr))
               // We're not using modelFormat as this value isn't directly related to this input
-              momentMin = $moment(minAttr, $moment.defaultModelFormat);
+              momentMin = $moment(minAttr, $moment.$defaultModelFormat);
             else
               momentMin = null;
             setMinViewModelMoments();
@@ -135,7 +137,7 @@ angular.module('angular-momentjs', [])
           }, true);
 
           var minParseValidator = function(value) {
-            var momentValue = $moment(value, viewFormat, $moment.strict);
+            var momentValue = $moment(value, viewFormat, $moment.$strict);
             if (!ctrl.$isEmpty(value) && momentValue.isValid() && momentValue.isBefore(momentMinView)) {
               ctrl.$setValidity('min', false);
               return undefined;
@@ -146,7 +148,7 @@ angular.module('angular-momentjs', [])
           };
 
           var minFormatValidator = function(value) {
-            var momentValue = $moment(value, modelFormat, $moment.strict);
+            var momentValue = $moment(value, modelFormat, $moment.$strict);
             if (!ctrl.$isEmpty(value) && momentValue.isValid() && momentValue.isBefore(momentMinModel)) {
               ctrl.$setValidity('min', false);
               return undefined;
@@ -165,7 +167,7 @@ angular.module('angular-momentjs', [])
             if (angular.isArray(maxAttr) && maxAttr.length == 2)
               momentMax = $moment(maxAttr[0], maxAttr[1]);
             else if (maxAttr && angular.isString(maxAttr))
-              momentMax = $moment(maxAttr, $moment.defaultModelFormat);
+              momentMax = $moment(maxAttr, $moment.$defaultModelFormat);
             else
               momentMax = null;
             setMaxViewModelMoments();
@@ -173,7 +175,7 @@ angular.module('angular-momentjs', [])
           }, true);
 
           var maxParseValidator = function(value) {
-            var momentValue = $moment(value, viewFormat, $moment.strict);
+            var momentValue = $moment(value, viewFormat, $moment.$strict);
             if (!ctrl.$isEmpty(value) && momentValue.isValid() && momentValue.isAfter(momentMaxView)) {
               ctrl.$setValidity('max', false);
               return undefined;
@@ -184,7 +186,7 @@ angular.module('angular-momentjs', [])
           };
 
           var maxFormatValidator = function(value) {
-            var momentValue = $moment(value, modelFormat, $moment.strict);
+            var momentValue = $moment(value, modelFormat, $moment.$strict);
             if (!ctrl.$isEmpty(value) && momentValue.isValid() && momentValue.isAfter(momentMaxModel)) {
               ctrl.$setValidity('max', false);
               return undefined;
@@ -202,7 +204,7 @@ angular.module('angular-momentjs', [])
         //////////////////////////////////
 
         var parseValidateFormatDate = function(inputFormat, outputFormat, value) {
-          var moment  = $moment(value, inputFormat, $moment.strict),
+          var moment  = $moment(value, inputFormat, $moment.$strict),
               isEmpty = ctrl.$isEmpty(value);
           if (!isEmpty && !moment.isValid()) {
             ctrl.$setValidity('date', false);
