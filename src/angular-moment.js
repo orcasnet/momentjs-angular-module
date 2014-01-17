@@ -59,9 +59,8 @@ angular.module('angular-momentjs', [])
 
 })
 
-.directive('input', [function inputDirective() {
-  var defaultFormat = 'L',
-      stepUnits     = ['second', 'minute', 'hour', 'day', 'month', 'year'];
+.directive('input', ['$moment', '$timeout', function inputDirective($moment, $timeout) {
+  var stepUnits = ['second', 'minute', 'hour', 'day', 'month', 'year'];
 
   return {
     restrict: 'E',
@@ -76,6 +75,182 @@ angular.module('angular-momentjs', [])
         if (!ctrl)
           return;
         
+        var setPlaceholder = function(format) { element.attr('placeholder', $moment.parseFormat(format)); },
+            // Formats may be overridden if attr.(view|model)Format or attr.format is set
+            viewFormat  = $moment.defaultViewFormat,
+            modelFormat = $moment.defaultModelFormat,
+            // Min/max must be reparsed using view/model formats to account for differences
+            // in date specificity. E.g., if min is '01-30-2000' and viewFormat is 'MM-YYYY'
+            // and the model value is '01-2000'. 
+            momentMin, momentMinView, momentMinModel,
+            momentMax, momentMaxView, momentMaxModel;
+
+        setPlaceholder(viewFormat);
+
+        // Utility Functions
+        /////////////////////
+
+        var reparseViewValue = function() { ctrl.$setViewValue(ctrl.$viewValue); };
+        var reformatModelValue = function() {
+          // Is there a better way to resend the model value through the formatter pipeline?
+          var modelValue = ctrl.$modelValue;
+          $timeout(function() {
+            scope.$apply(function() { scope[attr.ngModel] = modelValue + ' '; });
+            scope.$apply(function() { scope[attr.ngModel] = modelValue; });
+          });
+        };
+
+        var setMinViewModelMoments = function() {
+          if (momentMin && momentMin.isValid()) {
+            momentMinView  = $moment(momentMin.format(viewFormat), viewFormat);
+            momentMinModel = $moment(momentMin.format(modelFormat), modelFormat);
+          }
+          else
+            momentMinView  = momentMinModel = $moment({year:-9999});
+        };
+
+        var setMaxViewModelMoments = function() {
+          if (momentMax && momentMax.isValid()) {
+            momentMaxView  = $moment(momentMax.format(viewFormat), viewFormat);
+            momentMaxModel = $moment(momentMax.format(modelFormat), modelFormat);
+          }
+          else
+            momentMaxView  = momentMaxModel = $moment({year:9999});
+        };
+
+        // Min/Max Validation
+        //////////////////////
+
+        if (attr.min) {
+          scope.$watch(attr.min, function minWatchAction(minAttr) {
+            if (angular.isArray(minAttr) && minAttr.length == 2)
+              momentMin = $moment(minAttr[0], minAttr[1]);
+            else if (minAttr && angular.isString(minAttr))
+              // We're not using modelFormat as this value isn't directly related to this input
+              momentMin = $moment(minAttr, $moment.defaultModelFormat);
+            else
+              momentMin = null;
+            setMinViewModelMoments();
+            reparseViewValue();
+          }, true);
+
+          var minParseValidator = function(value) {
+            var momentValue = $moment(value, viewFormat, $moment.strict);
+            if (!ctrl.$isEmpty(value) && momentValue.isValid() && momentValue.isBefore(momentMinView)) {
+              ctrl.$setValidity('min', false);
+              return undefined;
+            } else {
+              ctrl.$setValidity('min', true);
+              return value;
+            }
+          };
+
+          var minFormatValidator = function(value) {
+            var momentValue = $moment(value, modelFormat, $moment.strict);
+            if (!ctrl.$isEmpty(value) && momentValue.isValid() && momentValue.isBefore(momentMinModel)) {
+              ctrl.$setValidity('min', false);
+              return undefined;
+            } else {
+              ctrl.$setValidity('min', true);
+              return value;
+            }
+          };
+
+          ctrl.$parsers.push(minParseValidator);
+          ctrl.$formatters.push(minFormatValidator);
+        }
+
+        if (attr.max) {
+          scope.$watch(attr.max, function maxWatchAction(maxAttr) {
+            if (angular.isArray(maxAttr) && maxAttr.length == 2)
+              momentMax = $moment(maxAttr[0], maxAttr[1]);
+            else if (maxAttr && angular.isString(maxAttr))
+              momentMax = $moment(maxAttr, $moment.defaultModelFormat);
+            else
+              momentMax = null;
+            setMaxViewModelMoments();
+            reparseViewValue();
+          }, true);
+
+          var maxParseValidator = function(value) {
+            var momentValue = $moment(value, viewFormat, $moment.strict);
+            if (!ctrl.$isEmpty(value) && momentValue.isValid() && momentValue.isAfter(momentMaxView)) {
+              ctrl.$setValidity('max', false);
+              return undefined;
+            } else {
+              ctrl.$setValidity('max', true);
+              return value;
+            }
+          };
+
+          var maxFormatValidator = function(value) {
+            var momentValue = $moment(value, modelFormat, $moment.strict);
+            if (!ctrl.$isEmpty(value) && momentValue.isValid() && momentValue.isAfter(momentMaxModel)) {
+              ctrl.$setValidity('max', false);
+              return undefined;
+            } else {
+              ctrl.$setValidity('max', true);
+              return value;
+            }
+          };
+
+          ctrl.$parsers.push(maxParseValidator);
+          ctrl.$formatters.push(maxFormatValidator);
+        }
+
+        // Date Validation and Formatting
+        //////////////////////////////////
+
+        var parseValidateFormatDate = function(inputFormat, outputFormat, value) {
+          var moment  = $moment(value, inputFormat, $moment.strict),
+              isEmpty = ctrl.$isEmpty(value);
+          if (!isEmpty && !moment.isValid()) {
+            ctrl.$setValidity('date', false);
+            return undefined;
+          } else {
+            ctrl.$setValidity('date', true);
+            return isEmpty ? value : moment.format(outputFormat);
+          }
+        };
+
+        var dateParser = function(value) { return parseValidateFormatDate(viewFormat, modelFormat, value); };
+        var dateFormatter = function(value) { return parseValidateFormatDate(modelFormat, viewFormat, value); };
+        ctrl.$parsers.push(dateParser);
+        ctrl.$formatters.push(dateFormatter);
+
+        if (attr.format && (!attr.viewFormat || !attr.modelFormat)) {
+          scope.$watch(attr.format, function formatWatchAction(value) {
+            viewFormat  = value;
+            modelFormat = value;
+            setPlaceholder(value);
+            setMinViewModelMoments();
+            setMaxViewModelMoments();
+            reparseViewValue();
+          });
+        }
+
+        if (attr.viewFormat) {
+          scope.$watch(attr.viewFormat, function viewFormatWatchAction(value) {
+            viewFormat = value;
+            setPlaceholder(value);
+            setMinViewModelMoments();
+            setMaxViewModelMoments();
+            reformatModelValue();
+          });
+        }
+
+        if (attr.modelFormat) {
+          scope.$watch(attr.modelFormat, function modelFormatWatchAction(value) {
+            modelFormat = value;
+            setMinViewModelMoments();
+            setMaxViewModelMoments();
+            reparseViewValue();
+          });
+        }
+
+        // Stepping
+        ////////////
+
         var stepUnit         = 'days',
             stepQuantity     = 1,
             inputStepHandler = function(event) {
@@ -88,7 +263,7 @@ angular.module('angular-momentjs', [])
                   valueMoment = isEmpty ? moment() : moment(ctrl.$viewValue, (attr.viewFormat || attr.format)),
                   isIncrease  = event.which === 38 || (event.wheelDelta || event.originalEvent.wheelDelta) /120 > 0,
                   isShifted   = event.shiftKey,
-                  format      = attr.viewFormat || attr.format || defaultFormat,
+                  format      = viewFormat,
                   min         = moment(attr.min || null).isValid() ? moment(moment(attr.min).format(format), format) : undefined,
                   max         = moment(attr.max || null).isValid() ? moment(moment(attr.max).format(format), format) : undefined,
                   shiftedStepUnit, steppedValueMoment, steppedValue;
@@ -151,105 +326,7 @@ angular.module('angular-momentjs', [])
 
         element.on('mousewheel keydown', inputStepHandler);
 
-        if (angular.isDefined(attr.min)) {
-          var minValidator = function(value) {
-            var valueFormat = attr.viewFormat || attr.format,
-                valueMoment = moment(value, valueFormat),
-                minMomemt   = moment(attr.min),
-                // For cases where valueFormat omits data, such as day, that min contains, we need
-                // to ensure the value is as specific or non-specific as the valueFormat
-                valueFormattedMinMoment = moment(minMomemt.format(valueFormat), valueFormat);
 
-            // debugger;
-            if (!ctrl.$isEmpty(value) && valueFormattedMinMoment.isValid() && valueMoment.isBefore(valueFormattedMinMoment)) {
-              ctrl.$setValidity('min', false);
-              return undefined;
-            } else {
-              ctrl.$setValidity('min', true);
-              return value;
-            }
-          };
-
-          ctrl.$parsers.push(minValidator);
-          ctrl.$formatters.push(minValidator);
-        }
-
-        if (angular.isDefined(attr.max)) {
-          var maxValidator = function(value) {
-            var valueFormat = attr.viewFormat || attr.format,
-                valueMoment = moment(value, valueFormat),
-                maxMomemt   = moment(attr.max),
-                valueFormattedMaxMoment = moment(maxMomemt.format(valueFormat), valueFormat);
-
-            if (!ctrl.$isEmpty(value) && valueFormattedMaxMoment.isValid() && valueMoment.isAfter(valueFormattedMaxMoment)) {
-              ctrl.$setValidity('max', false);
-              return undefined;
-            } else {
-              ctrl.$setValidity('max', true);
-              return value;
-            }
-          };
-
-          ctrl.$parsers.push(maxValidator);
-          ctrl.$formatters.push(maxValidator);
-        }
-
-        if (angular.isDefined(attr.viewFormat)) {
-          // From view to model
-          var modelFormatterValidator = function(value) {
-            var valueMoment = moment(value, attr.viewFormat, true);
-            if (ctrl.$isEmpty(value) || valueMoment.isValid()) {
-              ctrl.$setValidity('date', true);
-              return ctrl.$isEmpty(value) ? value : valueMoment.format(attr.modelFormat);
-            } else {
-              ctrl.$setValidity('date', false);
-              return undefined;
-            }
-          };
-
-          // From model to view
-          var viewFormatterValidator = function(value) {
-            var valueMoment = moment(value, attr.modelFormat);
-            if (ctrl.$isEmpty(value) || valueMoment.isValid()) {
-              ctrl.$setValidity('date', true);
-              return ctrl.$isEmpty(value) ? value : valueMoment.format(attr.viewFormat);
-            } else {
-              ctrl.$setValidity('date', false);
-              return undefined;
-            }
-          };
-
-          ctrl.$parsers.push(modelFormatterValidator);
-          ctrl.$formatters.push(viewFormatterValidator);
-        }
-        else if (attr.format) {
-          var formatterValidator = function(value) {
-            if (!ctrl.$isEmpty(value) || moment(value, attr.viewFormat).isValid()) {
-              ctrl.$setValidity('date', true);
-              return value;
-            } else {
-              ctrl.$setValidity('date', false);
-              return undefined;
-            }
-          };
-          
-          ctrl.$parsers.push(formatterValidator);
-          ctrl.$formatters.push(formatterValidator);
-        }
-        else {
-          var dateValidator = function(value) {
-            if (ctrl.$isEmpty(value) || moment(value).isValid()) {
-              ctrl.$setValidity('date', true);
-              return value;
-            } else {
-              ctrl.$setValidity('date', false);
-              return undefined;
-            }
-          };
-
-          ctrl.$parsers.push(dateValidator);
-          ctrl.$formatters.push(dateValidator);
-        }
 
       };
     }
