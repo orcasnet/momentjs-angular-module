@@ -5,10 +5,11 @@ describe('$moment', function () {
     // So we don't have to worry about timezones for test runner's machine
     moment.defaultFormat = 'X';
 
-    var $moment, $scope, $compile, compile, controller;
+    var $moment, $scope, $compile, $timeout, compile, controller;
 
     var momentInput       = '<input type="moment" ng-model="date">',
-        momentInputFormat = '<input type="moment" ng-model="date" format="dateFormat">';
+        momentInputFormat = '<input type="moment" ng-model="date" format="dateFormat">',
+        momentInputMinMax = '<input type="moment" ng-model="date" min="dateMin" max="dateMax">';
 
     var dateFormat1 = 'MM-DD-YYYY',
         dateFormat2 = 'YYYY-MM-DD',
@@ -18,11 +19,17 @@ describe('$moment', function () {
     var viewDate  = '01/31/1986',
         modelDate = '507542400';
 
+    var modelDateLowest  = '307542400',
+        modelDateLow     = '407542400',
+        modelDateHigh    = '607542400',
+        modelDateHighest = '707542400';
+
     beforeEach(angular.mock.module('angular-momentjs'));
-    beforeEach(inject(function (_$moment_, _$rootScope_, _$compile_) {
+    beforeEach(inject(function (_$moment_, _$rootScope_, _$compile_, _$timeout_) {
       $moment  = _$moment_;
       $scope   = _$rootScope_.$new();
       $compile = _$compile_;
+      $timeout = _$timeout_;
       compile  = function(markup) { return $compile(markup)($scope); };
     }));
 
@@ -70,6 +77,29 @@ describe('$moment', function () {
             ctrl  = input.controller('ngModel');
         ctrl.$setViewValue(viewDate);
         expect($scope.date).toBe(modelDate);
+      });
+
+      it('should accept a string for min and max attributes', function() {
+        var input = compile(momentInputMinMax),
+            ctrl  = input.controller('ngModel');
+
+        $scope.$apply("date    = '"+ modelDate +"'");
+        $scope.$apply("dateMin = '"+ modelDateLow +"'");
+        $scope.$apply("dateMax = '"+ modelDateHigh +"'");
+        expect(ctrl.$error.min).toBe(false);
+        expect(ctrl.$error.max).toBe(false);
+        expect(input.val()).toBe(viewDate);
+
+        $scope.$apply("date = '"+ modelDateLowest +"'");
+        expect(ctrl.$error.min).toBe(true);
+        expect(ctrl.$error.max).toBe(false);
+        expect(ctrl.$error.max).toBe(false);
+        expect(input.val()).toBe('');
+
+        $scope.$apply("date = '"+ modelDateHighest +"'");
+        expect(ctrl.$error.min).toBe(false);
+        expect(ctrl.$error.max).toBe(true);
+        expect(input.val()).toBe('');
       });
 
     });
