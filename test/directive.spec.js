@@ -20,13 +20,13 @@ describe('$moment', function () {
         modelDate = '507542400';
 
     var modelDateLowest  = '307542400',
-        modelDateLow     = '407542400',
-        modelDateHigh    = '607542400',
+        modelDateLower   = '407542400',
+        modelDateHigher  = '607542400',
         modelDateHighest = '707542400',
 
         viewDateLowest   = '09/30/1979',
-        viewDateLow      = '11/30/1982',
-        viewDateHigh     = '04/02/1989',
+        viewDateLower    = '11/30/1982',
+        viewDateHigher   = '04/02/1989',
         viewDateHighest  = '06/02/1992';
 
     beforeEach(angular.mock.module('angular-momentjs'));
@@ -93,8 +93,8 @@ describe('$moment', function () {
             ctrl  = input.controller('ngModel');
 
         $scope.$apply("date    = '"+ modelDate +"'");
-        $scope.$apply("dateMin = '"+ modelDateLow +"'");
-        $scope.$apply("dateMax = '"+ modelDateHigh +"'");
+        $scope.$apply("dateMin = '"+ modelDateLower +"'");
+        $scope.$apply("dateMax = '"+ modelDateHigher +"'");
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(false);
         expect(input.val()).toBe(viewDate);
@@ -120,8 +120,8 @@ describe('$moment', function () {
             ctrl  = input.controller('ngModel');
 
         $scope.$apply("date    = '"+ modelDate +"'");
-        $scope.$apply("dateMin = ['"+ viewDateLow +"', 'MM-DD-YYYY'] ");
-        $scope.$apply("dateMax = ['"+ viewDateHigh +"', 'MM-DD-YYYY'] ");
+        $scope.$apply("dateMin = ['"+ viewDateLower +"', 'MM-DD-YYYY'] ");
+        $scope.$apply("dateMax = ['"+ viewDateHigher +"', 'MM-DD-YYYY'] ");
 
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(false);
@@ -149,8 +149,8 @@ describe('$moment', function () {
         var input = compile(momentInputMinMax),
             ctrl  = input.controller('ngModel');
 
-        $scope.$apply("dateMin = '"+ modelDateLow +"'");
-        $scope.$apply("dateMax = '"+ modelDateHigh +"'");
+        $scope.$apply("dateMin = '"+ modelDateLower +"'");
+        $scope.$apply("dateMax = '"+ modelDateHigher +"'");
 
         ctrl.$setViewValue(viewDateLowest);
         expect(ctrl.$error.min).toBe(true);
@@ -167,8 +167,8 @@ describe('$moment', function () {
         var input = compile(momentInputMinMax),
             ctrl  = input.controller('ngModel');
 
-        $scope.$apply("dateMin = ['"+ viewDateLow +"', 'MM-DD-YYYY'] ");
-        $scope.$apply("dateMax = ['"+ viewDateHigh +"', 'MM-DD-YYYY'] ");
+        $scope.$apply("dateMin = ['"+ viewDateLower +"', 'MM-DD-YYYY'] ");
+        $scope.$apply("dateMax = ['"+ viewDateHigher +"', 'MM-DD-YYYY'] ");
 
         ctrl.$setViewValue(viewDateLowest);
         expect(ctrl.$error.min).toBe(true);
@@ -188,23 +188,23 @@ describe('$moment', function () {
             ctrl  = input.controller('ngModel');
 
         $scope.$apply("date    = '"+ modelDate +"'");
-        $scope.$apply("dateMin = '"+ modelDateLow +"'");
-        $scope.$apply("dateMax = '"+ modelDateHigh +"'");
+        $scope.$apply("dateMin = '"+ modelDateLower +"'");
+        $scope.$apply("dateMax = '"+ modelDateHigher +"'");
 
         $scope.$apply("dateMin = '"+ modelDateLowest +"'");
-        $scope.$apply("dateMax = '"+ modelDateLow +"'");
+        $scope.$apply("dateMax = '"+ modelDateLower +"'");
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(true);
         expect(input.val()).toBe('');
 
-        $scope.$apply("dateMin = '"+ modelDateHigh +"'");
+        $scope.$apply("dateMin = '"+ modelDateHigher +"'");
         $scope.$apply("dateMax = '"+ modelDateHighest +"'");
         expect(ctrl.$error.min).toBe(true);
         expect(ctrl.$error.max).toBe(false);
         expect(input.val()).toBe('');
 
-        $scope.$apply("dateMin = '"+ modelDateLow +"'");
-        $scope.$apply("dateMax = '"+ modelDateHigh +"'");
+        $scope.$apply("dateMin = '"+ modelDateLower +"'");
+        $scope.$apply("dateMax = '"+ modelDateHigher +"'");
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(false);
         expect(input.val()).toBe(viewDate);
