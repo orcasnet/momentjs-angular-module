@@ -1,5 +1,5 @@
 /*global beforeEach, afterEach, describe, it, inject, expect, module, spyOn, moment, angular, $*/
-describe('$momentProvider', function () {
+describe('$moment', function () {
     'use strict';
 
     var $moment;
