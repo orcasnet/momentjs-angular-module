@@ -37,7 +37,7 @@ describe('$moment', function () {
       $timeout = _$timeout_;
       compile  = function(markup) { return $compile(markup)($scope); };
 
-      consoleLog = console.log;
+      consoleLog = console.log || angular.noop;
     }));
 
     describe('directive', function() {
@@ -195,19 +195,19 @@ describe('$moment', function () {
         $scope.$apply("dateMax = '"+ modelDateLower +"'");
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(true);
-        expect(input.val()).toBe('');
+        expect($scope.date).toBeUndefined();
 
         $scope.$apply("dateMin = '"+ modelDateHigher +"'");
         $scope.$apply("dateMax = '"+ modelDateHighest +"'");
         expect(ctrl.$error.min).toBe(true);
         expect(ctrl.$error.max).toBe(false);
-        expect(input.val()).toBe('');
+        expect($scope.date).toBeUndefined();
 
         $scope.$apply("dateMin = '"+ modelDateLower +"'");
         $scope.$apply("dateMax = '"+ modelDateHigher +"'");
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(false);
-        expect(input.val()).toBe(viewDate);
+        expect($scope.date).toBe(modelDate);
       });
 
 
