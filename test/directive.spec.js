@@ -93,7 +93,6 @@ describe('$moment', function () {
         $scope.$apply("date = '"+ modelDateLowest +"'");
         expect(ctrl.$error.min).toBe(true);
         expect(ctrl.$error.max).toBe(false);
-        expect(ctrl.$error.max).toBe(false);
         expect(input.val()).toBe('');
 
         $scope.$apply("date = '"+ modelDateHighest +"'");
