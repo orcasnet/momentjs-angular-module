@@ -120,86 +120,6 @@ angular.module('angular-momentjs', [])
             momentMaxView  = momentMaxModel = $moment({year:9999});
         };
 
-        // Min/Max Validation
-        //////////////////////
-
-        if (attr.min) {
-          scope.$watch(attr.min, function minWatchAction(minAttr) {
-            if (angular.isArray(minAttr) && minAttr.length == 2)
-              momentMin = $moment(minAttr[0], minAttr[1]);
-            else if (minAttr && angular.isString(minAttr))
-              // We're not using modelFormat as this value isn't directly related to this input
-              momentMin = $moment(minAttr, $moment.$defaultModelFormat);
-            else
-              momentMin = null;
-            setMinViewModelMoments();
-            reparseViewValue();
-          }, true);
-
-          var minParseValidator = function(value) {
-            var momentValue = $moment(value, viewFormat, $moment.$strict);
-            if (!ctrl.$isEmpty(value) && momentValue.isValid() && momentValue.isBefore(momentMinView)) {
-              ctrl.$setValidity('min', false);
-              return undefined;
-            } else {
-              ctrl.$setValidity('min', true);
-              return value;
-            }
-          };
-
-          var minFormatValidator = function(value) {
-            var momentValue = $moment(value, modelFormat, $moment.$strict);
-            if (!ctrl.$isEmpty(value) && momentValue.isValid() && momentValue.isBefore(momentMinModel)) {
-              ctrl.$setValidity('min', false);
-              return undefined;
-            } else {
-              ctrl.$setValidity('min', true);
-              return value;
-            }
-          };
-
-          ctrl.$parsers.push(minParseValidator);
-          ctrl.$formatters.push(minFormatValidator);
-        }
-
-        if (attr.max) {
-          scope.$watch(attr.max, function maxWatchAction(maxAttr) {
-            if (angular.isArray(maxAttr) && maxAttr.length == 2)
-              momentMax = $moment(maxAttr[0], maxAttr[1]);
-            else if (maxAttr && angular.isString(maxAttr))
-              momentMax = $moment(maxAttr, $moment.$defaultModelFormat);
-            else
-              momentMax = null;
-            setMaxViewModelMoments();
-            reparseViewValue();
-          }, true);
-
-          var maxParseValidator = function(value) {
-            var momentValue = $moment(value, viewFormat, $moment.$strict);
-            if (!ctrl.$isEmpty(value) && momentValue.isValid() && momentValue.isAfter(momentMaxView)) {
-              ctrl.$setValidity('max', false);
-              return undefined;
-            } else {
-              ctrl.$setValidity('max', true);
-              return value;
-            }
-          };
-
-          var maxFormatValidator = function(value) {
-            var momentValue = $moment(value, modelFormat, $moment.$strict);
-            if (!ctrl.$isEmpty(value) && momentValue.isValid() && momentValue.isAfter(momentMaxModel)) {
-              ctrl.$setValidity('max', false);
-              return undefined;
-            } else {
-              ctrl.$setValidity('max', true);
-              return value;
-            }
-          };
-
-          ctrl.$parsers.push(maxParseValidator);
-          ctrl.$formatters.push(maxFormatValidator);
-        }
-
         // Date Validation and Formatting
         //////////////////////////////////
 
@@ -217,7 +137,7 @@ angular.module('angular-momentjs', [])
 
         var dateParser = function(value) { return parseValidateFormatDate(viewFormat, modelFormat, value); };
         var dateFormatter = function(value) { return parseValidateFormatDate(modelFormat, viewFormat, value); };
-        ctrl.$parsers.push(dateParser);
+        // Parser needs to come after the rest of the parsers in this directive so they don't get a reformatted value
         ctrl.$formatters.push(dateFormatter);
 
         if (attr.format && (!attr.viewFormat || !attr.modelFormat)) {
@@ -249,6 +169,88 @@ angular.module('angular-momentjs', [])
             reparseViewValue();
           });
         }
+
+        // Min/Max Validation
+        //////////////////////
+
+        if (attr.min) {
+          scope.$watch(attr.min, function minWatchAction(minAttr) {
+            if (angular.isArray(minAttr) && minAttr.length == 2)
+              momentMin = $moment(minAttr[0], minAttr[1]);
+            else if (minAttr && angular.isString(minAttr))
+              // We're not using modelFormat as this value isn't directly related to this input
+              momentMin = $moment(minAttr, $moment.$defaultModelFormat);
+            else
+              momentMin = null;
+            setMinViewModelMoments();
+            reparseViewValue();
+          }, true);
+
+          var minParseValidator = function(value) {
+            var momentValue = $moment(value, viewFormat, $moment.$strict);
+            if (!ctrl.$isEmpty(value) && momentMinModel && momentValue.isValid() && momentValue.isBefore(momentMinView)) {
+              ctrl.$setValidity('min', false);
+              return undefined;
+            } else {
+              ctrl.$setValidity('min', true);
+              return value;
+            }
+          };
+
+          var minFormatValidator = function(value) {
+            var momentValue = $moment(value, modelFormat, $moment.$strict);
+            if (!ctrl.$isEmpty(value) && momentMinModel && momentValue.isValid() && momentValue.isBefore(momentMinModel)) {
+              ctrl.$setValidity('min', false);
+              return undefined;
+            } else {
+              ctrl.$setValidity('min', true);
+              return value;
+            }
+          };
+
+          ctrl.$parsers.push(minParseValidator);
+          ctrl.$formatters.push(minFormatValidator);
+        }
+
+        if (attr.max) {
+          scope.$watch(attr.max, function maxWatchAction(maxAttr) {
+            if (angular.isArray(maxAttr) && maxAttr.length == 2)
+              momentMax = $moment(maxAttr[0], maxAttr[1]);
+            else if (maxAttr && angular.isString(maxAttr))
+              momentMax = $moment(maxAttr, $moment.$defaultModelFormat);
+            else
+              momentMax = null;
+            setMaxViewModelMoments();
+            reparseViewValue();
+          }, true);
+
+          var maxParseValidator = function(value) {
+            var momentValue = $moment(value, viewFormat, $moment.$strict);
+            if (!ctrl.$isEmpty(value) && momentMaxModel && momentValue.isValid() && momentValue.isAfter(momentMaxView)) {
+              ctrl.$setValidity('max', false);
+              return undefined;
+            } else {
+              ctrl.$setValidity('max', true);
+              return value;
+            }
+          };
+
+          var maxFormatValidator = function(value) {
+            var momentValue = $moment(value, modelFormat, $moment.$strict);
+            if (!ctrl.$isEmpty(value) && momentMaxModel && momentValue.isValid() && momentValue.isAfter(momentMaxModel)) {
+              ctrl.$setValidity('max', false);
+              return undefined;
+            } else {
+              ctrl.$setValidity('max', true);
+              return value;
+            }
+          };
+
+          ctrl.$parsers.push(maxParseValidator);
+          ctrl.$formatters.push(maxFormatValidator);
+        }
+
+        ctrl.$parsers.push(dateParser);
 
         // Stepping
         ////////////
