@@ -11,7 +11,7 @@ module.exports = function (config) {
 
     singleRun : true,
 
-    browsers : ['Chrome', 'Firefox'],
+    browsers : ['Chrome', 'Safari', 'Firefox', 'PhantomJS'],
 
     frameworks : ["jasmine"],
 
