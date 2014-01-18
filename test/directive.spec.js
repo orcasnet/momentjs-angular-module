@@ -181,7 +181,34 @@ describe('$moment', function () {
         expect($scope.date).toBeUndefined();
       });
 
+      // End View-size
 
+      it('should revalidate when min/max values change', function() {
+        var input = compile(momentInputMinMax),
+            ctrl  = input.controller('ngModel');
+
+        $scope.$apply("date    = '"+ modelDate +"'");
+        $scope.$apply("dateMin = '"+ modelDateLow +"'");
+        $scope.$apply("dateMax = '"+ modelDateHigh +"'");
+
+        $scope.$apply("dateMin = '"+ modelDateLowest +"'");
+        $scope.$apply("dateMax = '"+ modelDateLow +"'");
+        expect(ctrl.$error.min).toBe(false);
+        expect(ctrl.$error.max).toBe(true);
+        expect(input.val()).toBe('');
+
+        $scope.$apply("dateMin = '"+ modelDateHigh +"'");
+        $scope.$apply("dateMax = '"+ modelDateHighest +"'");
+        expect(ctrl.$error.min).toBe(true);
+        expect(ctrl.$error.max).toBe(false);
+        expect(input.val()).toBe('');
+
+        $scope.$apply("dateMin = '"+ modelDateLow +"'");
+        $scope.$apply("dateMax = '"+ modelDateHigh +"'");
+        expect(ctrl.$error.min).toBe(false);
+        expect(ctrl.$error.max).toBe(false);
+        expect(input.val()).toBe(viewDate);
+      });
 
 
     });
