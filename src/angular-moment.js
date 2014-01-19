@@ -92,8 +92,12 @@ angular.module('angular-momentjs', [])
         // Utility Functions
         /////////////////////
 
-        var reparseViewValue = function() { ctrl.$setViewValue(ctrl.$viewValue); };
+        var reparseViewValue = function() {
+          if (!ctrl.$isEmpty(ctrl.$viewValue))
+            ctrl.$setViewValue(ctrl.$viewValue);
+        };
         var reformatModelValue = function() {
+
           // Is there a better way to resend the model value through the formatter pipeline?
           var modelValue = ctrl.$modelValue;
           $timeout(function() {
@@ -152,7 +156,9 @@ angular.module('angular-momentjs', [])
         }
 
         if (attr.viewFormat) {
-          scope.$watch(attr.viewFormat, function viewFormatWatchAction(value) {
+          scope.$watch(attr.viewFormat, function viewFormatWatchAction(value, oldValue) {
+            if (!value) value = $moment.$defaultViewFormat;
+            if (value === oldValue) return;
             viewFormat = value;
             setPlaceholder(value);
             setMinViewModelMoments();
@@ -162,7 +168,9 @@ angular.module('angular-momentjs', [])
         }
 
         if (attr.modelFormat) {
-          scope.$watch(attr.modelFormat, function modelFormatWatchAction(value) {
+          scope.$watch(attr.modelFormat, function modelFormatWatchAction(value, oldValue) {
+            if (!value) value = $moment.$defaultModelFormat;
+            if (value === oldValue) return;
             modelFormat = value;
             setMinViewModelMoments();
             setMaxViewModelMoments();
