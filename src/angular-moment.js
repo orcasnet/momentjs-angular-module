@@ -112,7 +112,7 @@ angular.module('angular-momentjs', [])
             momentMinModel = $moment(momentMin.format(modelFormat), modelFormat);
           }
           else
-            momentMinView  = momentMinModel = $moment({year:-9999});
+            momentMinView  = momentMinModel = null;
         };
 
         var setMaxViewModelMoments = function() {
@@ -121,7 +121,7 @@ angular.module('angular-momentjs', [])
             momentMaxModel = $moment(momentMax.format(modelFormat), modelFormat);
           }
           else
-            momentMaxView  = momentMaxModel = $moment({year:9999});
+            momentMaxView  = momentMaxModel = null;
         };
 
         // Date Validation and Formatting
@@ -157,7 +157,7 @@ angular.module('angular-momentjs', [])
 
         if (attr.viewFormat) {
           scope.$watch(attr.viewFormat, function viewFormatWatchAction(value, oldValue) {
-            if (!value) value = $moment.$defaultViewFormat;
+            value = value || $moment.$defaultViewFormat;
             if (value === oldValue) return;
             viewFormat = value;
             setPlaceholder(value);
@@ -169,7 +169,7 @@ angular.module('angular-momentjs', [])
 
         if (attr.modelFormat) {
           scope.$watch(attr.modelFormat, function modelFormatWatchAction(value, oldValue) {
-            if (!value) value = $moment.$defaultModelFormat;
+            value = value || $moment.$defaultModelFormat;
             if (value === oldValue) return;
             modelFormat = value;
             setMinViewModelMoments();
