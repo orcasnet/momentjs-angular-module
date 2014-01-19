@@ -70,8 +70,9 @@ angular.module('angular-momentjs', [])
 
 })
 
-.directive('input', ['$moment', '$timeout', function inputDirective($moment, $timeout) {
-  var stepUnits = ['second', 'minute', 'hour', 'day', 'month', 'year'];
+.directive('input', ['$moment', '$timeout', 'indexOf', function inputDirective($moment, $timeout, indexOf) {
+  // Maybe expose a setting for localization someday...
+  var stepUnits = ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'];
 
   return {
     restrict: 'E',
@@ -94,7 +95,8 @@ angular.module('angular-momentjs', [])
             // in date specificity. E.g., if min is '01-30-2000' and viewFormat is 'MM-YYYY'
             // and the model value is '01-2000'. 
             momentMin, momentMinView, momentMinModel,
-            momentMax, momentMaxView, momentMaxModel;
+            momentMax, momentMaxView, momentMaxModel,
+            stepUnit, stepQuantity;
 
         setPlaceholder(viewFormat);
 
@@ -272,77 +274,80 @@ angular.module('angular-momentjs', [])
         // Stepping
         ////////////
 
-        var stepUnit         = 'days',
-            stepQuantity     = 1,
-            inputStepHandler = function(event) {
-              if (event.type == 'keydown' && ( event.which !== 38 && event.which !== 40 ))
-                return;
+        // Allow this to be config'ed
+        stepUnit     = 'day',
+        stepQuantity = 1;
 
-              event.preventDefault();
+        if (attr.step) {
+          scope.$watch(attr.step, function stepWatchAction(step) {
+            if (!step || !angular.isString(step))
+              return;
 
-              var isEmpty     = ctrl.$isEmpty(ctrl.$viewValue),
-                  valueMoment = isEmpty ? moment() : moment(ctrl.$viewValue, (attr.viewFormat || attr.format)),
-                  isIncrease  = event.which === 38 || (event.wheelDelta || event.originalEvent.wheelDelta) /120 > 0,
-                  isShifted   = event.shiftKey,
-                  format      = viewFormat,
-                  min         = moment(attr.min || null).isValid() ? moment(moment(attr.min).format(format), format) : undefined,
-                  max         = moment(attr.max || null).isValid() ? moment(moment(attr.max).format(format), format) : undefined,
-                  shiftedStepUnit, steppedValueMoment, steppedValue;
+            var match = attr.step.match(/(\d+)\s(\w+)/);
+            if (match) {
+              stepUnit     = match[2];
+              stepQuantity = parseInt(match[1], 10);
+            } else {
+              stepUnit     = 'day';
+              stepQuantity = 1;
+            }
 
-              if (attr.step) {
-                var match = attr.step.match(/(\d+)\s(\w+)/);
-                if (match) {
-                  stepUnit      = match[2];
-                  stepQuantity  = parseInt(match[1], 10);
-                } else {
-                  stepUnit     = 'days';
-                  stepQuantity = 1;
-                }
-              }
+          });
+        }
 
-              if (!valueMoment.isValid())
-                return;
+        var inputStepHandler = function(event) {
+          //                           Up, Down, Plus, Minus
+          if (event.type == 'keydown' && !/38|40|107|109/.test(event.which)) return;
+          event.preventDefault();
 
-              if (isShifted)
-                shiftedStepUnit = stepUnits[(_.indexOf(stepUnits, stepUnit.replace(/s$/, '')) + 1)] || stepUnit;
-              else
-                shiftedStepUnit = stepUnit;
+          var isEmpty    = ctrl.$isEmpty(ctrl.$viewValue),
+              momentView = isEmpty ? moment() : moment(ctrl.$viewValue, viewFormat),
+              isIncrease = /38|107/.test(event.which) || (event.wheelDelta || event.originalEvent.wheelDelta) / 120 > 0,
+              shiftedStepUnit, momentViewStepped, steppedViewValue;
 
-              if (isIncrease) {
-                if (isEmpty && !min)
-                  // Then use today's date clamped to max 
-                  steppedValueMoment = valueMoment.max(max ? max : undefined);
-                else if ((isEmpty && min) || (min && valueMoment.isBefore(min)))
-                  steppedValueMoment = min;
-                else if (max && !valueMoment.isAfter(max))
-                  // Then step value, clamp to max
-                  steppedValueMoment = valueMoment.add(shiftedStepUnit, stepQuantity).max(max);
-                else if (!max)
-                  // If there's no max, increase; otherwise leave it alone
-                  // This mimic's browser vendor behavior with min/max stepping for input[type=number]
-                  steppedValueMoment = valueMoment.add(shiftedStepUnit, stepQuantity);
-              }
-              // The opposite for decrease
-              else {
-                if (isEmpty && !max)
-                  steppedValueMoment = valueMoment.min(min ? min : undefined);
-                else if ((isEmpty && max) || (max && valueMoment.isAfter(max)))
-                  steppedValueMoment = max;
-                else if (min && !valueMoment.isBefore(min))
-                  steppedValueMoment = valueMoment.subtract(shiftedStepUnit, stepQuantity).min(min);
-                else if (!min)
-                  steppedValueMoment = valueMoment.subtract(shiftedStepUnit, stepQuantity);
-              }
+          if (!momentView.isValid())
+            return;
 
-              steppedValue = (steppedValueMoment || valueMoment).format(format);
+          if (!!event.shiftKey)
+            shiftedStepUnit = stepUnits[(indexOf(stepUnits, stepUnit.replace(/s$/, '')) + 1)] || stepUnit;
+          else
+            shiftedStepUnit = stepUnit;
 
-              scope.$apply(function() {
-                ctrl.$setViewValue(steppedValue);
-              });
+          if (isIncrease) {
+            if (isEmpty && !momentMin)
+              // Then use today's date clamped to max 
+              momentViewStepped = momentView.max(momentMax ? momentMaxView : undefined);
+            else if ((isEmpty && momentMin) || (momentMin && momentView.isBefore(momentMinView)))
+              momentViewStepped = momentMinView.clone();
+            else if (momentMax && !momentView.isAfter(momentMaxView))
+              // Then step value, clamp to max
+              momentViewStepped = momentView.add(shiftedStepUnit, stepQuantity).max(momentMaxView);
+            else if (!momentMax)
+              // If there's no max, increase; otherwise leave it alone
+              // This mimic's browser vendor behavior with min/max stepping for input[type=number]
+              momentViewStepped = momentView.add(shiftedStepUnit, stepQuantity);
+          }
+          // The opposite for decrease
+          else {
+            if (isEmpty && !momentMax)
+              momentViewStepped = momentView.min(momentMin ? momentMinView : undefined);
+            else if ((isEmpty && momentMax) || (momentMax && momentView.isAfter(momentMaxView)))
+              momentViewStepped = momentMaxView.clone();
+            else if (momentMin && !momentView.isBefore(momentMinView))
+              momentViewStepped = momentView.subtract(shiftedStepUnit, stepQuantity).min(momentMinView);
+            else if (!momentMin)
+              // If there's no max, increase; otherwise leave it alone
+              // This mimic's browser vendor behavior with min/max stepping for input[type=number]
+              momentViewStepped = momentView.subtract(shiftedStepUnit, stepQuantity);
+          }
 
-              ctrl.$render(function() {
-                ctrl.$setViewValue(steppedValue);
-              });
+          steppedViewValue = (momentViewStepped || momentView).format(viewFormat);
+
+          scope.$apply(function() {
+            element.val(steppedViewValue);
+            ctrl.$setViewValue(steppedViewValue);
+          });
+
         };
 
         element.on('mousewheel keydown', inputStepHandler);
