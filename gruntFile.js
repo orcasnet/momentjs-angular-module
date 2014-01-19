@@ -17,7 +17,7 @@ module.exports = function (grunt) {
   grunt.initConfig({
     karma: {
       unit: {
-        options: testConfig('test/test.conf.js')
+        options: testConfig('karma.conf.js')
       }
     },
     jshint:{
