@@ -30,6 +30,14 @@ describe('$moment', function () {
         viewDateHigher   = '04/02/1989',
         viewDateHighest  = '06/02/1992';
 
+
+    var wheelUpEvent   = ['mousewheel', { type:'wheel', wheelDelta:120, which:1 }],
+        wheelDownEvent = ['mousewheel', { type:'wheel', wheelDelta:-120, which:1 }],
+        upKeyEvent     = ['keydown', { type:'keydown', which:38 }],
+        downKeyEvent   = ['keydown', { type:'keydown', which:40 }],
+        plusKeyEvent   = ['keydown', { type:'keydown', which:107 }],
+        minusKeyEvent  = ['keydown', { type:'keydown', which:109 }];
+
     beforeEach(angular.mock.module('angular-momentjs'));
     beforeEach(inject(function (_$moment_, _$rootScope_, _$compile_, _$timeout_) {
       $moment  = _$moment_;
@@ -41,7 +49,7 @@ describe('$moment', function () {
       consoleLog = console.log || angular.noop;
     }));
 
-    describe('directive', function() {
+    describe('input directive', function() {
 
       it('should initialize only on type "date" and "moment" inputs', function() {
         var textInput   = compile('<input type="text" ng-model="date">');
@@ -245,6 +253,47 @@ describe('$moment', function () {
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(false);
         expect($scope.date).toBe(modelDate);
+      });
+
+      // Stepping
+
+      it('should set value to today\'s date on up, down, plus, or minus keys, or mousewheel', function() {
+        var input = compile(momentInputMinMax),
+            today = $moment().format('L');
+
+        input.triggerHandler.apply(input, wheelUpEvent);
+        expect(input.val()).toBe(today);
+
+        $scope.$apply("date = undefined");
+        input.triggerHandler.apply(input, wheelDownEvent);
+        expect(input.val()).toBe(today);
+
+        $scope.$apply("date = undefined");
+        input.triggerHandler.apply(input, upKeyEvent);
+        expect(input.val()).toBe(today);
+
+        $scope.$apply("date = undefined");
+        input.triggerHandler.apply(input, downKeyEvent);
+        expect(input.val()).toBe(today);
+
+        $scope.$apply("date = undefined");
+        input.triggerHandler.apply(input, plusKeyEvent);
+        expect(input.val()).toBe(today);
+
+        $scope.$apply("date = undefined");
+        input.triggerHandler.apply(input, minusKeyEvent);
+        expect(input.val()).toBe(today);
+
+      });
+
+      it('should not step if input view value is invalid', function() {
+        var input = compile(momentInputMinMax),
+            ctrl  = input.controller('ngModel');
+
+        ctrl.$setViewValue('Purple monkey dishwasher');
+        input.triggerHandler.apply(input, wheelUpEvent);
+        expect(ctrl.$viewValue).toBe('Purple monkey dishwasher');
+        expect($scope.date).toBeUndefined();
       });
 
 
