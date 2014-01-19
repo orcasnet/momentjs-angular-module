@@ -7,13 +7,14 @@ describe('$moment', function () {
 
     var $moment, $scope, $compile, $timeout, compile, controller, consoleLog;
 
-    var momentInput       = '<input type="moment" ng-model="date">',
-        momentInputFormat = '<input type="moment" ng-model="date" format="dateFormat">',
-        momentInputMinMax = '<input type="moment" ng-model="date" min="dateMin" max="dateMax">';
+    var momentInput                = '<input type="moment" ng-model="date">',
+        momentInputFormat          = '<input type="moment" ng-model="date" format="dateFormat">',
+        momentInputViewModelFormat = '<input type="moment" ng-model="date" view-format="dateViewFormat" model-format="dateModelFormat">',
+        momentInputMinMax          = '<input type="moment" ng-model="date" min="dateMin" max="dateMax">';
 
     var dateFormat1 = 'MM-DD-YYYY',
         dateFormat2 = 'YYYY-MM-DD',
-        dateFormat3 = 'YYYY-MM-DD',
+        dateFormat3 = 'MM-YYYY-DD',
         monthFormat = 'MM-YYYY';
 
     var viewDate  = '01/31/1986',
@@ -86,7 +87,43 @@ describe('$moment', function () {
         expect($scope.date).toBe(modelDate);
       });
 
-      // Model-side
+      it('should invalidate an invalid view date', function() {
+        var input = compile(momentInput),
+            ctrl  = input.controller('ngModel');
+
+        ctrl.$setViewValue('Purple monkey dishwasher');
+        expect(ctrl.$error.date).toBe(true);
+        expect($scope.date).toBeUndefined();
+
+        ctrl.$setViewValue('01/32/1986');
+        expect(ctrl.$error.date).toBe(true);
+        expect($scope.date).toBeUndefined();
+      });
+
+      it('should reformat view/model based on view- and model-format attrs', function() {
+        var input = compile(momentInputViewModelFormat),
+            ctrl  = input.controller('ngModel');
+        $scope.$apply("date = '"+ viewDate +"'");
+
+        // Flip default view and model formats so model becomes valid
+        $scope.$apply("dateModelFormat = 'L'");
+        $scope.$apply("dateViewFormat  = 'X'");
+        $timeout.flush();
+        expect($scope.date).toBe(viewDate);
+        expect(input.val()).toBe(modelDate);
+
+        // Reset view format to default
+        $scope.$apply("dateViewFormat = 'L'");
+        $timeout.flush();
+        expect(input.val()).toBe(viewDate);
+
+        // Reset model format to default
+        $scope.$apply("dateModelFormat = 'X'");
+        expect($scope.date).toBe(modelDate);
+      });
+
+
+      // Model-side min/max tests
 
       it('should validate the model against min and max string values', function() {
         var input = compile(momentInputMinMax),
@@ -143,7 +180,7 @@ describe('$moment', function () {
         expect(input.val()).toBe(viewDate);
       });
 
-      // View-side
+      // View-side min/max tests
 
       it('should validate the view against min and max string values', function() {
         var input = compile(momentInputMinMax),
@@ -181,7 +218,7 @@ describe('$moment', function () {
         expect($scope.date).toBeUndefined();
       });
 
-      // End View-size
+      // End view-size min/max tests
 
       it('should revalidate when min/max values change', function() {
         var input = compile(momentInputMinMax),
