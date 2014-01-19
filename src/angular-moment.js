@@ -2,6 +2,15 @@
 
 angular.module('angular-momentjs', [])
 
+.constant('indexOf', function indexOf(array, obj) {
+  // Taken from github.com/angular/angular.js
+  if (array.indexOf) return array.indexOf(obj);
+  for (var i = 0; i < array.length; i++) {
+    if (obj === array[i]) return i;
+  }
+  return -1;
+})
+
 .provider('$moment', function $momentProvider() {
   // Strict parsing has trouble in Moment.js v2.3—2.5 with short tokens
   // E.g. 1-31-2000, M-D-YYYY is invalid.
