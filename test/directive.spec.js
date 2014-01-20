@@ -10,7 +10,8 @@ describe('$moment', function () {
     var momentInput                = '<input type="moment" ng-model="date">',
         momentInputFormat          = '<input type="moment" ng-model="date" format="dateFormat">',
         momentInputViewModelFormat = '<input type="moment" ng-model="date" view-format="dateViewFormat" model-format="dateModelFormat">',
-        momentInputMinMax          = '<input type="moment" ng-model="date" min="dateMin" max="dateMax">';
+        momentInputMinMax          = '<input type="moment" ng-model="date" min="dateMin" max="dateMax">',
+        momentInputStep            = '<input type="moment" ng-model="date" step="dateStep">';
 
     var dateFormat1 = 'MM-DD-YYYY',
         dateFormat2 = 'YYYY-MM-DD',
@@ -342,6 +343,89 @@ describe('$moment', function () {
         expect($scope.date).toBeUndefined();
       });
 
+      it('should begin stepping at min when specified', function() {
+        var input = compile(momentInputMinMax),
+            ctrl  = input.controller('ngModel');
+
+        $scope.$apply("dateMin = '"+ modelDateLower +"'");
+        $scope.$apply("dateMax = '"+ modelDateHigher +"'");
+
+        input.triggerHandler.apply(input, minusKeyEvent);
+        expect(ctrl.$viewValue).toBe(viewDateLower);
+
+        $scope.$apply("date = undefined");
+        input.triggerHandler.apply(input, plusKeyEvent);
+        expect(ctrl.$viewValue).toBe(viewDateLower);
+      });
+
+      it('should not allow stepping out of min/max bounds', function() {
+        var input = compile(momentInputMinMax),
+            ctrl  = input.controller('ngModel');
+
+        $scope.$apply("date    = '"+ modelDateLower +"'");
+        $scope.$apply("dateMin = '"+ modelDateLower +"'");
+        $scope.$apply("dateMax = '"+ modelDateHigher +"'");
+
+        input.triggerHandler.apply(input, downKeyEvent);
+        expect(ctrl.$viewValue).toBe(viewDateLower);
+
+        $scope.$apply("date = '"+ modelDateHigher +"'");
+        input.triggerHandler.apply(input, upKeyEvent);
+        expect(ctrl.$viewValue).toBe(viewDateHigher);
+      });
+
+      it('should step out-of-bounds date to within min and max bounds when inc. and dec., respectively', function() {
+        var input = compile(momentInputMinMax),
+            ctrl  = input.controller('ngModel');
+
+        $scope.$apply("dateMin = '"+ modelDateLower +"'");
+        $scope.$apply("dateMax = '"+ modelDateHigher +"'");
+
+        ctrl.$setViewValue(viewDateLowest);
+        input.triggerHandler.apply(input, upKeyEvent);
+        expect(ctrl.$viewValue).toBe(viewDateLower);
+
+        ctrl.$setViewValue(viewDateHighest);
+        input.triggerHandler.apply(input, downKeyEvent);
+        expect(ctrl.$viewValue).toBe(viewDateHigher);
+      });
+
+      it('should respect the step attribute and ignore pluralization of unit', function() {
+        var input = compile(momentInputStep),
+            ctrl                = input.controller('ngModel'),
+            today               = $moment().format('L'),
+            nextMonth           = $moment().add(1, 'month').format('L');
+
+        $scope.$apply("dateStep = '1 month'");
+
+        input.triggerHandler.apply(input, upKeyEvent);
+        expect(ctrl.$viewValue).toBe(today);
+
+        $scope.$apply("dateStep = '1 months'");
+
+        input.triggerHandler.apply(input, upKeyEvent);
+        expect(ctrl.$viewValue).toBe(nextMonth);
+
+        input.triggerHandler.apply(input, downKeyEvent);
+        expect(ctrl.$viewValue).toBe(today);
+      });
+
+      it('should fall back to default stepping if step attribute is invalid', function() {
+        var input = compile(momentInputStep),
+            ctrl     = input.controller('ngModel'),
+            today    = $moment().format('L'),
+            tomorrow = $moment().add(1, 'day').format('L');
+
+        input.triggerHandler.apply(input, upKeyEvent);
+        $scope.$apply("dateStep = 'month 1'");
+
+        input.triggerHandler.apply(input, upKeyEvent);
+        expect(ctrl.$viewValue).toBe(tomorrow);
+
+        $scope.$apply("dateStep = 'Purple monkey dishwasher'");
+        input.triggerHandler.apply(input, downKeyEvent);
+        expect(ctrl.$viewValue).toBe(today);
+      });
 
     });
 
