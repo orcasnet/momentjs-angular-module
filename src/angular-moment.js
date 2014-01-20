@@ -274,7 +274,7 @@ angular.module('angular-momentjs', [])
         // Stepping
         ////////////
 
-        // Allow this to be config'ed
+        // TODO: Allow this to be config'ed
         stepUnit     = 'day',
         stepQuantity = 1;
 
@@ -283,7 +283,7 @@ angular.module('angular-momentjs', [])
             if (!step || !angular.isString(step))
               return;
 
-            var match = attr.step.match(/(\d+)\s(\w+)/);
+            var match = step.match(/(\d+)\s(\w+)/);
             if (match) {
               stepUnit     = match[2];
               stepQuantity = parseInt(match[1], 10);
@@ -323,17 +323,21 @@ angular.module('angular-momentjs', [])
           else
             shiftedStepUnit = stepUnit;
 
-          if (isIncrease) {
+          if (isEmpty && momentMin)
+            // Always step an empty value to the min if specified
+            momentViewStepped = momentMinView.clone();
+          else if (isIncrease) {
             if (isEmpty && !momentMin)
               // Then use today's date clamped to max 
               momentViewStepped = momentView.max(momentMax ? momentMaxView : undefined);
-            else if ((isEmpty && momentMin) || (momentMin && momentView.isBefore(momentMinView)))
+            else if (momentMin && momentView.isBefore(momentMinView))
               momentViewStepped = momentMinView.clone();
             else if (momentMax && !momentView.isAfter(momentMaxView))
-              // Then step value, clamp to max
+              // Then step value up, clamp to max
               momentViewStepped = momentView.add(shiftedStepUnit, stepQuantity).max(momentMaxView);
             else if (!momentMax)
-              // If there's no max, increase; otherwise leave it alone
+              // If there's no max, increase; otherwise leave it exceeding max--we'll only bring it
+              // back in bounds of the max when user decreases value. 
               // This mimic's browser vendor behavior with min/max stepping for input[type=number]
               momentViewStepped = momentView.add(shiftedStepUnit, stepQuantity);
           }
@@ -341,13 +345,11 @@ angular.module('angular-momentjs', [])
           else {
             if (isEmpty && !momentMax)
               momentViewStepped = momentView.min(momentMin ? momentMinView : undefined);
-            else if ((isEmpty && momentMax) || (momentMax && momentView.isAfter(momentMaxView)))
+            else if (momentMax && momentView.isAfter(momentMaxView))
               momentViewStepped = momentMaxView.clone();
             else if (momentMin && !momentView.isBefore(momentMinView))
               momentViewStepped = momentView.subtract(shiftedStepUnit, stepQuantity).min(momentMinView);
             else if (!momentMin)
-              // If there's no max, increase; otherwise leave it alone
-              // This mimic's browser vendor behavior with min/max stepping for input[type=number]
               momentViewStepped = momentView.subtract(shiftedStepUnit, stepQuantity);
           }
 
