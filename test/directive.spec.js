@@ -258,7 +258,7 @@ describe('$moment', function () {
       // Stepping
 
       it('should set value to today\'s date on up, down, plus, or minus keys, or mousewheel', function() {
-        var input = compile(momentInputMinMax),
+        var input = compile(momentInput),
             today = $moment().format('L');
 
         input.triggerHandler.apply(input, wheelUpEvent);
@@ -286,13 +286,59 @@ describe('$moment', function () {
 
       });
 
+      it('should step by one day with a value', function() {
+        var input     = compile(momentInput),
+            ctrl      = input.controller('ngModel'),
+            today     = $moment().format('L'),
+            tomorrow  = $moment().add(1, 'day').format('L'),
+            yesterday = $moment().subtract(1, 'day').format('L');
+
+        ctrl.$setViewValue(today);
+        input.triggerHandler.apply(input, wheelUpEvent);
+        expect(ctrl.$viewValue).toBe(tomorrow);
+
+        input.triggerHandler.apply(input, downKeyEvent);
+        input.triggerHandler.apply(input, minusKeyEvent);
+        expect(ctrl.$viewValue).toBe(yesterday);
+      });
+
+      it('should step by one month if shift key is pressed', function() {
+        var input     = compile(momentInput),
+            ctrl                = input.controller('ngModel'),
+            today               = $moment().format('L'),
+            nextMonth           = $moment().add(1, 'month').format('L'),
+            wheelUpShiftEvent   = angular.copy(wheelUpEvent),
+            wheelDownShiftEvent = angular.copy(wheelDownEvent);
+
+        wheelUpShiftEvent[1].shiftKey   = true;
+        wheelDownShiftEvent[1].shiftKey = true;
+
+        ctrl.$setViewValue(today);
+        input.triggerHandler.apply(input, wheelUpShiftEvent);
+        expect(ctrl.$viewValue).toBe(nextMonth);
+
+        input.triggerHandler.apply(input, wheelDownShiftEvent);
+        expect(ctrl.$viewValue).toBe(today);
+      });
+
       it('should not step if input view value is invalid', function() {
-        var input = compile(momentInputMinMax),
+        var input = compile(momentInput),
             ctrl  = input.controller('ngModel');
 
         ctrl.$setViewValue('Purple monkey dishwasher');
         input.triggerHandler.apply(input, wheelUpEvent);
         expect(ctrl.$viewValue).toBe('Purple monkey dishwasher');
+        expect($scope.date).toBeUndefined();
+      });
+
+      it('should not step if keydown event key isn\'t up, down, plus, or minus', function() {
+        var input = compile(momentInput),
+            ctrl  = input.controller('ngModel'),
+            badKeyEvent = angular.copy(upKeyEvent);
+        badKeyEvent[1].which = 39;
+
+        input.triggerHandler.apply(input, badKeyEvent);
+        expect(ctrl.$viewValue).toBeFalsy();
         expect($scope.date).toBeUndefined();
       });
 
