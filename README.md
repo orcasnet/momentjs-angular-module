@@ -62,4 +62,15 @@ Used to configure defaults across the module.
 Note that all parameters can be bound data-bound and dynamic. If `modelFormat` is changed, the view value will be reparsed to provide the new format for the model value, and conversely if `viewFormat` is changed.
 
 
+## Contributing
+Please feel welcome to contribute by forking this repo, creating a new branch, and issuing a pull request. Please try to write tests to accompany your contribution. To get up and running for development:
+```
+npm install -g grunt-cli
+npm install
+bower install
+```
 
+To run Karma tests:
+```
+grunt
+```
