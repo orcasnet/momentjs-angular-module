@@ -167,11 +167,11 @@ angular.module('angular-momentjs', [])
         }
 
         if (attr.viewFormat) {
-          scope.$watch(attr.viewFormat, function viewFormatWatchAction(value, oldValue) {
-            value = value || $moment.$defaultViewFormat;
-            if (value === oldValue) return;
-            viewFormat = value;
-            setPlaceholder(value);
+          scope.$watch(attr.viewFormat, function viewFormatWatchAction(format, oldFormat) {
+            format = format || $moment.$defaultViewFormat;
+            if (format === oldFormat) return;
+            viewFormat = format;
+            setPlaceholder(format);
             setMinViewModelMoments();
             setMaxViewModelMoments();
             reformatModelValue();
@@ -179,10 +179,10 @@ angular.module('angular-momentjs', [])
         }
 
         if (attr.modelFormat) {
-          scope.$watch(attr.modelFormat, function modelFormatWatchAction(value, oldValue) {
-            value = value || $moment.$defaultModelFormat;
-            if (value === oldValue) return;
-            modelFormat = value;
+          scope.$watch(attr.modelFormat, function modelFormatWatchAction(format, oldFormat) {
+            format = format || $moment.$defaultModelFormat;
+            if (format === oldFormat) return;
+            modelFormat = format;
             setMinViewModelMoments();
             setMaxViewModelMoments();
             reparseViewValue();
