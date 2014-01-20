@@ -2,18 +2,27 @@
 
 angular.module('angular-momentjs', [])
 
+.constant('indexOf', function indexOf(array, obj) {
+  // Taken from github.com/angular/angular.js
+  if (array.indexOf) return array.indexOf(obj);
+  for (var i = 0; i < array.length; i++) {
+    if (obj === array[i]) return i;
+  }
+  return -1;
+})
+
 .provider('$moment', function $momentProvider() {
   // Strict parsing has trouble in Moment.js v2.3—2.5 with short tokens
   // E.g. 1-31-2000, M-D-YYYY is invalid.
   var config = {
-    strict: true,
-    defaultViewFormat: 'L',
-    defaultModelFormat: moment.defaultFormat,
-    parseFormat: parseFormat
+    $strict: true,
+    $defaultViewFormat: 'L',
+    $defaultModelFormat: moment.defaultFormat,
+    $parseFormat: $parseFormat
   };
 
   // For parsing locale-dependent date formats (L, LL, etc.) 
-  function parseFormat (format) {
+  function $parseFormat (format) {
     format = format || '';
     if (format.match(/l/i))
       return moment().lang()._longDateFormat[format] || format;
@@ -22,35 +31,37 @@ angular.module('angular-momentjs', [])
 
   this.defaultViewFormat = function(format) {
     if (angular.isString(format))
-      config.defaultViewFormat = format;
+      config.$defaultViewFormat = format;
     return this;
   };
 
   this.defaultModelFormat = function(format) {
     if (angular.isString(format))
-      config.defaultModelFormat = format;
+      config.$defaultModelFormat = format;
     return this;
   };
 
   this.strict = function(bool) {
     if (typeof bool === 'boolean')
-      config.strict = bool;
+      config.$strict = bool;
     return this;
   };
 
   this.$get = function() {
+    if (angular.isDefined(moment.$strict))
+      return moment;
     try {
-      Object.defineProperty(moment, 'strict', {
-        value: config.strict
+      Object.defineProperty(moment, '$strict', {
+        value: config.$strict
       });
-      Object.defineProperty(moment, 'defaultViewFormat', {
-        value: config.defaultViewFormat
+      Object.defineProperty(moment, '$defaultViewFormat', {
+        value: config.$defaultViewFormat
       });
-      Object.defineProperty(moment, 'defaultModelFormat', {
-        value: config.defaultModelFormat
+      Object.defineProperty(moment, '$defaultModelFormat', {
+        value: config.$defaultModelFormat
       });
-      Object.defineProperty(moment, 'parseFormat', {
-        value: config.parseFormat
+      Object.defineProperty(moment, '$parseFormat', {
+        value: config.$parseFormat
       });
     }
     catch(err) { angular.extend(moment, config); }
@@ -59,9 +70,9 @@ angular.module('angular-momentjs', [])
 
 })
 
-.directive('input', [function inputDirective() {
-  var defaultFormat = 'L',
-      stepUnits     = ['second', 'minute', 'hour', 'day', 'month', 'year'];
+.directive('input', ['$moment', '$timeout', 'indexOf', function inputDirective($moment, $timeout, indexOf) {
+  // Maybe expose a setting for localization someday...
+  var stepUnits = ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'];
 
   return {
     restrict: 'E',
@@ -76,92 +87,127 @@ angular.module('angular-momentjs', [])
         if (!ctrl)
           return;
         
-        var stepUnit         = 'days',
-            stepQuantity     = 1,
-            inputStepHandler = function(event) {
-              if (event.type == 'keydown' && ( event.which !== 38 && event.which !== 40 ))
-                return;
+        var setPlaceholder = function(format) { element.attr('placeholder', $moment.$parseFormat(format)); },
+            // Formats may be overridden if attr.(view|model)Format or attr.format is set
+            viewFormat  = $moment.$defaultViewFormat,
+            modelFormat = $moment.$defaultModelFormat,
+            // Min/max must be reparsed using view/model formats to account for differences
+            // in date specificity. E.g., if min is '01-30-2000' and viewFormat is 'MM-YYYY'
+            // and the model value is '01-2000'. 
+            momentMin, momentMinView, momentMinModel,
+            momentMax, momentMaxView, momentMaxModel,
+            stepUnit, stepQuantity;
 
-              event.preventDefault();
+        setPlaceholder(viewFormat);
 
-              var isEmpty     = ctrl.$isEmpty(ctrl.$viewValue),
-                  valueMoment = isEmpty ? moment() : moment(ctrl.$viewValue, (attr.viewFormat || attr.format)),
-                  isIncrease  = event.which === 38 || (event.wheelDelta || event.originalEvent.wheelDelta) /120 > 0,
-                  isShifted   = event.shiftKey,
-                  format      = attr.viewFormat || attr.format || defaultFormat,
-                  min         = moment(attr.min || null).isValid() ? moment(moment(attr.min).format(format), format) : undefined,
-                  max         = moment(attr.max || null).isValid() ? moment(moment(attr.max).format(format), format) : undefined,
-                  shiftedStepUnit, steppedValueMoment, steppedValue;
+        // Utility Functions
+        /////////////////////
 
-              if (attr.step) {
-                var match = attr.step.match(/(\d+)\s(\w+)/);
-                if (match) {
-                  stepUnit      = match[2];
-                  stepQuantity  = parseInt(match[1], 10);
-                } else {
-                  stepUnit     = 'days';
-                  stepQuantity = 1;
-                }
-              }
+        var reparseViewValue = function() {
+          if (!ctrl.$isEmpty(ctrl.$viewValue))
+            ctrl.$setViewValue(ctrl.$viewValue);
+        };
+        var reformatModelValue = function() {
 
-              if (!valueMoment.isValid())
-                return;
-
-              if (isShifted)
-                shiftedStepUnit = stepUnits[(_.indexOf(stepUnits, stepUnit.replace(/s$/, '')) + 1)] || stepUnit;
-              else
-                shiftedStepUnit = stepUnit;
-
-              if (isIncrease) {
-                if (isEmpty && !min)
-                  // Then use today's date clamped to max 
-                  steppedValueMoment = valueMoment.max(max ? max : undefined);
-                else if ((isEmpty && min) || (min && valueMoment.isBefore(min)))
-                  steppedValueMoment = min;
-                else if (max && !valueMoment.isAfter(max))
-                  // Then step value, clamp to max
-                  steppedValueMoment = valueMoment.add(shiftedStepUnit, stepQuantity).max(max);
-                else if (!max)
-                  // If there's no max, increase; otherwise leave it alone
-                  // This mimic's browser vendor behavior with min/max stepping for input[type=number]
-                  steppedValueMoment = valueMoment.add(shiftedStepUnit, stepQuantity);
-              }
-              // The opposite for decrease
-              else {
-                if (isEmpty && !max)
-                  steppedValueMoment = valueMoment.min(min ? min : undefined);
-                else if ((isEmpty && max) || (max && valueMoment.isAfter(max)))
-                  steppedValueMoment = max;
-                else if (min && !valueMoment.isBefore(min))
-                  steppedValueMoment = valueMoment.subtract(shiftedStepUnit, stepQuantity).min(min);
-                else if (!min)
-                  steppedValueMoment = valueMoment.subtract(shiftedStepUnit, stepQuantity);
-              }
-
-              steppedValue = (steppedValueMoment || valueMoment).format(format);
-
-              scope.$apply(function() {
-                ctrl.$setViewValue(steppedValue);
-              });
-
-              ctrl.$render(function() {
-                ctrl.$setViewValue(steppedValue);
-              });
+          // Is there a better way to resend the model value through the formatter pipeline?
+          var modelValue = ctrl.$modelValue;
+          $timeout(function() {
+            scope.$apply(function() { scope[attr.ngModel] = modelValue + ' '; });
+            scope.$apply(function() { scope[attr.ngModel] = modelValue; });
+          });
         };
 
-        element.on('mousewheel keydown', inputStepHandler);
+        var setMinViewModelMoments = function() {
+          if (momentMin && momentMin.isValid()) {
+            momentMinView  = $moment(momentMin.format(viewFormat), viewFormat);
+            momentMinModel = $moment(momentMin.format(modelFormat), modelFormat);
+          }
+          else
+            momentMinView  = momentMinModel = null;
+        };
 
-        if (angular.isDefined(attr.min)) {
-          var minValidator = function(value) {
-            var valueFormat = attr.viewFormat || attr.format,
-                valueMoment = moment(value, valueFormat),
-                minMomemt   = moment(attr.min),
-                // For cases where valueFormat omits data, such as day, that min contains, we need
-                // to ensure the value is as specific or non-specific as the valueFormat
-                valueFormattedMinMoment = moment(minMomemt.format(valueFormat), valueFormat);
+        var setMaxViewModelMoments = function() {
+          if (momentMax && momentMax.isValid()) {
+            momentMaxView  = $moment(momentMax.format(viewFormat), viewFormat);
+            momentMaxModel = $moment(momentMax.format(modelFormat), modelFormat);
+          }
+          else
+            momentMaxView  = momentMaxModel = null;
+        };
 
-            // debugger;
-            if (!ctrl.$isEmpty(value) && valueFormattedMinMoment.isValid() && valueMoment.isBefore(valueFormattedMinMoment)) {
+        // Date Validation and Formatting
+        //////////////////////////////////
+
+        var parseValidateFormatDate = function(inputFormat, outputFormat, value) {
+          var moment  = $moment(value, inputFormat, $moment.$strict),
+              isEmpty = ctrl.$isEmpty(value);
+          if (!isEmpty && !moment.isValid()) {
+            ctrl.$setValidity('date', false);
+            return undefined;
+          } else {
+            ctrl.$setValidity('date', true);
+            return isEmpty ? value : moment.format(outputFormat);
+          }
+        };
+
+        var dateParser = function(value) { return parseValidateFormatDate(viewFormat, modelFormat, value); };
+        var dateFormatter = function(value) { return parseValidateFormatDate(modelFormat, viewFormat, value); };
+        // Parser needs to come after the rest of the parsers in this directive so they don't get a reformatted value
+        ctrl.$formatters.push(dateFormatter);
+
+        if (attr.format && (!attr.viewFormat || !attr.modelFormat)) {
+          scope.$watch(attr.format, function formatWatchAction(value) {
+            viewFormat  = value;
+            modelFormat = value;
+            setPlaceholder(value);
+            setMinViewModelMoments();
+            setMaxViewModelMoments();
+            reparseViewValue();
+          });
+        }
+
+        if (attr.viewFormat) {
+          scope.$watch(attr.viewFormat, function viewFormatWatchAction(format, oldFormat) {
+            format = format || $moment.$defaultViewFormat;
+            if (format === oldFormat) return;
+            viewFormat = format;
+            setPlaceholder(format);
+            setMinViewModelMoments();
+            setMaxViewModelMoments();
+            reformatModelValue();
+          });
+        }
+
+        if (attr.modelFormat) {
+          scope.$watch(attr.modelFormat, function modelFormatWatchAction(format, oldFormat) {
+            format = format || $moment.$defaultModelFormat;
+            if (format === oldFormat) return;
+            modelFormat = format;
+            setMinViewModelMoments();
+            setMaxViewModelMoments();
+            reparseViewValue();
+          });
+        }
+
+        // Min/Max Validation
+        //////////////////////
+
+        if (attr.min) {
+          scope.$watch(attr.min, function minWatchAction(minAttr) {
+            if (angular.isArray(minAttr) && minAttr.length == 2)
+              momentMin = $moment(minAttr[0], minAttr[1]);
+            else if (minAttr && angular.isString(minAttr))
+              // We're not using modelFormat as this value isn't directly related to this input
+              momentMin = $moment(minAttr, $moment.$defaultModelFormat);
+            else
+              momentMin = null;
+            setMinViewModelMoments();
+            reparseViewValue();
+          }, true);
+
+          var minParseValidator = function(value) {
+            var momentValue = $moment(value, viewFormat, $moment.$strict);
+            if (!ctrl.$isEmpty(value) && momentMinModel && momentValue.isValid() && momentValue.isBefore(momentMinView)) {
               ctrl.$setValidity('min', false);
               return undefined;
             } else {
@@ -170,18 +216,36 @@ angular.module('angular-momentjs', [])
             }
           };
 
-          ctrl.$parsers.push(minValidator);
-          ctrl.$formatters.push(minValidator);
+          var minFormatValidator = function(value) {
+            var momentValue = $moment(value, modelFormat, $moment.$strict);
+            if (!ctrl.$isEmpty(value) && momentMinModel && momentValue.isValid() && momentValue.isBefore(momentMinModel)) {
+              ctrl.$setValidity('min', false);
+              return undefined;
+            } else {
+              ctrl.$setValidity('min', true);
+              return value;
+            }
+          };
+
+          ctrl.$parsers.push(minParseValidator);
+          ctrl.$formatters.push(minFormatValidator);
         }
 
-        if (angular.isDefined(attr.max)) {
-          var maxValidator = function(value) {
-            var valueFormat = attr.viewFormat || attr.format,
-                valueMoment = moment(value, valueFormat),
-                maxMomemt   = moment(attr.max),
-                valueFormattedMaxMoment = moment(maxMomemt.format(valueFormat), valueFormat);
+        if (attr.max) {
+          scope.$watch(attr.max, function maxWatchAction(maxAttr) {
+            if (angular.isArray(maxAttr) && maxAttr.length == 2)
+              momentMax = $moment(maxAttr[0], maxAttr[1]);
+            else if (maxAttr && angular.isString(maxAttr))
+              momentMax = $moment(maxAttr, $moment.$defaultModelFormat);
+            else
+              momentMax = null;
+            setMaxViewModelMoments();
+            reparseViewValue();
+          }, true);
 
-            if (!ctrl.$isEmpty(value) && valueFormattedMaxMoment.isValid() && valueMoment.isAfter(valueFormattedMaxMoment)) {
+          var maxParseValidator = function(value) {
+            var momentValue = $moment(value, viewFormat, $moment.$strict);
+            if (!ctrl.$isEmpty(value) && momentMaxModel && momentValue.isValid() && momentValue.isAfter(momentMaxView)) {
               ctrl.$setValidity('max', false);
               return undefined;
             } else {
@@ -190,66 +254,117 @@ angular.module('angular-momentjs', [])
             }
           };
 
-          ctrl.$parsers.push(maxValidator);
-          ctrl.$formatters.push(maxValidator);
-        }
-
-        if (angular.isDefined(attr.viewFormat)) {
-          // From view to model
-          var modelFormatterValidator = function(value) {
-            var valueMoment = moment(value, attr.viewFormat, true);
-            if (ctrl.$isEmpty(value) || valueMoment.isValid()) {
-              ctrl.$setValidity('date', true);
-              return ctrl.$isEmpty(value) ? value : valueMoment.format(attr.modelFormat);
-            } else {
-              ctrl.$setValidity('date', false);
+          var maxFormatValidator = function(value) {
+            var momentValue = $moment(value, modelFormat, $moment.$strict);
+            if (!ctrl.$isEmpty(value) && momentMaxModel && momentValue.isValid() && momentValue.isAfter(momentMaxModel)) {
+              ctrl.$setValidity('max', false);
               return undefined;
-            }
-          };
-
-          // From model to view
-          var viewFormatterValidator = function(value) {
-            var valueMoment = moment(value, attr.modelFormat);
-            if (ctrl.$isEmpty(value) || valueMoment.isValid()) {
-              ctrl.$setValidity('date', true);
-              return ctrl.$isEmpty(value) ? value : valueMoment.format(attr.viewFormat);
             } else {
-              ctrl.$setValidity('date', false);
-              return undefined;
-            }
-          };
-
-          ctrl.$parsers.push(modelFormatterValidator);
-          ctrl.$formatters.push(viewFormatterValidator);
-        }
-        else if (attr.format) {
-          var formatterValidator = function(value) {
-            if (!ctrl.$isEmpty(value) || moment(value, attr.viewFormat).isValid()) {
-              ctrl.$setValidity('date', true);
+              ctrl.$setValidity('max', true);
               return value;
-            } else {
-              ctrl.$setValidity('date', false);
-              return undefined;
-            }
-          };
-          
-          ctrl.$parsers.push(formatterValidator);
-          ctrl.$formatters.push(formatterValidator);
-        }
-        else {
-          var dateValidator = function(value) {
-            if (ctrl.$isEmpty(value) || moment(value).isValid()) {
-              ctrl.$setValidity('date', true);
-              return value;
-            } else {
-              ctrl.$setValidity('date', false);
-              return undefined;
             }
           };
 
-          ctrl.$parsers.push(dateValidator);
-          ctrl.$formatters.push(dateValidator);
+          ctrl.$parsers.push(maxParseValidator);
+          ctrl.$formatters.push(maxFormatValidator);
         }
+
+        ctrl.$parsers.push(dateParser);
+
+        // Stepping
+        ////////////
+
+        // TODO: Allow this to be config'ed
+        stepUnit     = 'day',
+        stepQuantity = 1;
+
+        if (attr.step) {
+          scope.$watch(attr.step, function stepWatchAction(step) {
+            if (!step || !angular.isString(step))
+              return;
+
+            var match = step.match(/(\d+)\s(\w+)/);
+            if (match) {
+              stepUnit     = match[2];
+              stepQuantity = parseInt(match[1], 10);
+            } else {
+              stepUnit     = 'day';
+              stepQuantity = 1;
+            }
+
+          });
+        }
+
+        var inputStepHandler = function(event, eventData) {
+          // Allow for passing custom event object in tests (so Kosher)
+          if (!event.type && eventData && eventData.type)
+            angular.extend(event, eventData);
+
+          //                           Up, Down, Plus, Minus
+          if (event.type == 'keydown' && !/38|40|107|109/.test(event.which)) return;
+          event.preventDefault();
+
+          var isEmpty    = ctrl.$isEmpty(ctrl.$viewValue),
+              momentView = isEmpty ? $moment() : $moment(ctrl.$viewValue, viewFormat),
+              wheelDelta, isIncrease, shiftedStepUnit, momentViewStepped, steppedViewValue;
+
+          if (!momentView.isValid())
+            return;
+
+          if (event.type == 'keydown')
+            isIncrease = /38|107/.test(event.which);
+          else {
+            wheelDelta = event.originalEvent ? event.originalEvent.wheelDelta : event.wheelDelta;
+            isIncrease = wheelDelta / 120 > 0;
+          }
+
+          if (!!event.shiftKey)
+            shiftedStepUnit = stepUnits[(indexOf(stepUnits, stepUnit.replace(/s$/, '')) + 1)] || stepUnit;
+          else
+            shiftedStepUnit = stepUnit;
+
+          if (isEmpty && momentMin)
+            // Always step an empty value to the min if specified
+            momentViewStepped = momentMinView.clone();
+          else if (isIncrease) {
+            if (isEmpty && !momentMin)
+              // Then use today's date clamped to max 
+              momentViewStepped = momentView.max(momentMax ? momentMaxView : undefined);
+            else if (momentMin && momentView.isBefore(momentMinView))
+              momentViewStepped = momentMinView.clone();
+            else if (momentMax && !momentView.isAfter(momentMaxView))
+              // Then step value up, clamp to max
+              momentViewStepped = momentView.add(shiftedStepUnit, stepQuantity).max(momentMaxView);
+            else if (!momentMax)
+              // If there's no max, increase; otherwise leave it exceeding max--we'll only bring it
+              // back in bounds of the max when user decreases value. 
+              // This mimic's browser vendor behavior with min/max stepping for input[type=number]
+              momentViewStepped = momentView.add(shiftedStepUnit, stepQuantity);
+          }
+          // The opposite for decrease
+          else {
+            if (isEmpty && !momentMax)
+              momentViewStepped = momentView.min(momentMin ? momentMinView : undefined);
+            else if (momentMax && momentView.isAfter(momentMaxView))
+              momentViewStepped = momentMaxView.clone();
+            else if (momentMin && !momentView.isBefore(momentMinView))
+              momentViewStepped = momentView.subtract(shiftedStepUnit, stepQuantity).min(momentMinView);
+            else if (!momentMin)
+              momentViewStepped = momentView.subtract(shiftedStepUnit, stepQuantity);
+          }
+
+          steppedViewValue = (momentViewStepped || momentView).format(viewFormat);
+
+          scope.$apply(function() {
+            element.val(steppedViewValue);
+            ctrl.$setViewValue(steppedViewValue);
+          });
+
+        };
+
+        element.on('mousewheel keydown', inputStepHandler);
+
+
 
       };
     }

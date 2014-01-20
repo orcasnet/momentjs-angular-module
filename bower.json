@@ -29,6 +29,7 @@
     "momentjs": "~2.5.x"
   },
   "devDependencies": {
+    "angular-mocks": "~1.x",
     "bootstrap-css": "2.3.2"
   }
 }
