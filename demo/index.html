@@ -7,12 +7,83 @@
 
   <script src="../bower_components/angular/angular.js"></script>
   <script src="../bower_components/momentjs/moment.js"></script>
-
   <script src="../src/angular-moment.js"></script>
-
   <script src="demo.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="demo.css">
+
+  <style type="text/css">
+    .datepick {
+      display: inline-block;
+      border: 1px solid #ccc;
+      font-size: 12px;
+
+      width: 280px;
+      margin-left: 100px
+    }
+
+    .datepick-header {
+      background: #fafafa;
+      border-bottom: 1px solid #ccc;
+      color: #666;
+      font-size: 15px;
+      line-height: 39px;
+      padding-left: 10px;
+    }
+
+    .datepick-cell {
+      border-bottom: 1px solid #e8e8e8;
+      display: inline-block;
+      width: 30px;
+      padding-left: 10px;
+      line-height: 39px;
+    }
+
+
+    .datepick-dayname {
+      background: #eee;
+      font-weight: bold;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .datepick-previousmonth,
+    .datepick-nextmonth {
+      background: #f7f7f7;
+      box-shadow: 0 2px 4px -3px #555 inset;
+      color: #bbb;
+    }
+
+    .datepick-previousmonth +
+    .datepick-currentmonth,
+
+    .datepick-currentmonth +
+    .datepick-nextmonth {
+      border-left: 1px solid #e8e8e8;
+      margin-left: -1px;
+    }
+
+  </style>
+
 </head>
 <body ng-controller="DemoCtrl">
-  
+  <div ng-form name="form">
+
+    Date: <input type="moment" ng-model="date" step="'1 month'">
+
+
+    <br>
+    <br>
+    <br>
+    <br>
+    <div class="datepick">
+      <header class="datepick-header" ng-bind="header"></header>
+      <div class="datepick-cell datepick-dayname" ng-repeat="name in dayNames" ng-bind="name"></div><div
+           class="datepick-cell datepick-day datepick-previousmonth" ng-repeat="day in daysPreviousMonth" ng-bind="day"></div><div 
+           class="datepick-cell datepick-day datepick-currentmonth" ng-repeat="day in daysCurrentMonth" ng-bind="day"></div><div 
+           class="datepick-cell datepick-day datepick-nextmonth" ng-repeat="day in daysNextMonth" ng-bind="day"></div>
+
+    </div>
+
+  </div>
 </body>
 </html>
