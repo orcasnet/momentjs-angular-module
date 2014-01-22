@@ -85,6 +85,7 @@ angular.module('angular-momentjs', [])
   var stepUnits = ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'];
 
   return {
+    priority: 10,
     restrict: 'E',
     require: '?ngModel',
     compile: function inputCompile(tElement, tAttr) {
@@ -146,6 +147,7 @@ angular.module('angular-momentjs', [])
             momentMaxView  = momentMaxModel = null;
         };
 
+
         // Date Validation and Formatting
         //////////////////////////////////
 
@@ -179,6 +181,7 @@ angular.module('angular-momentjs', [])
         }
 
         if (attr.viewFormat) {
+          viewFormat = scope.$eval(attr.viewFormat) || viewFormat;
           scope.$watch(attr.viewFormat, function viewFormatWatchAction(format) {
             format = format || $moment.$defaultViewFormat;
             if (format === viewFormat) return;
@@ -191,6 +194,7 @@ angular.module('angular-momentjs', [])
         }
 
         if (attr.modelFormat) {
+          modelFormat = scope.$eval(attr.modelFormat) || modelFormat;
           scope.$watch(attr.modelFormat, function modelFormatWatchAction(format) {
             format = format || $moment.$defaultModelFormat;
             if (format === modelFormat) return;
@@ -205,6 +209,22 @@ angular.module('angular-momentjs', [])
         //////////////////////
 
         if (attr.min) {
+          var minWatchAction = function minWatchAction(minAttr) {
+            var moment;
+            if (angular.isArray(minAttr) && minAttr.length == 2)
+              moment = $moment(minAttr[0], minAttr[1]);
+            else if (minAttr && angular.isString(minAttr))
+              moment = $moment(minAttr, $moment.$defaultModelFormat);
+            else
+              moment = null;
+
+            if (!moment ^ !momentMin || (moment && momentMin && moment.format('X') !== momentMin.format('X'))) {
+              momentMin = moment;
+              setMinViewModelMoments();
+              reparseViewValue();
+            }
+          };
+
           scope.$watch(attr.min, function minWatchAction(minAttr) {
             if (angular.isArray(minAttr) && minAttr.length == 2)
               momentMin = $moment(minAttr[0], minAttr[1]);
@@ -239,11 +259,29 @@ angular.module('angular-momentjs', [])
             }
           };
 
+          minWatchAction(scope.$eval(attr.min));
+          scope.$watch(attr.min, minWatchAction, true);
           ctrl.$parsers.push(minParseValidator);
           ctrl.$formatters.push(minFormatValidator);
         }
 
         if (attr.max) {
+          var maxWatchAction = function maxWatchAction(maxAttr) {
+            var moment;
+            if (angular.isArray(maxAttr) && maxAttr.length == 2)
+              moment = $moment(maxAttr[0], maxAttr[1]);
+            else if (maxAttr && angular.isString(maxAttr))
+              moment = $moment(maxAttr, $moment.$defaultModelFormat);
+            else
+              moment = null;
+
+            if (!moment ^ !momentMax || (moment && momentMax && moment.format('X') !== momentMax.format('X'))) {
+              momentMax = moment;
+              setMaxViewModelMoments();
+              reparseViewValue();
+            }
+          };
+
           scope.$watch(attr.max, function maxWatchAction(maxAttr) {
             if (angular.isArray(maxAttr) && maxAttr.length == 2)
               momentMax = $moment(maxAttr[0], maxAttr[1]);
@@ -277,6 +315,8 @@ angular.module('angular-momentjs', [])
             }
           };
 
+          maxWatchAction(scope.$eval(attr.max));
+          scope.$watch(attr.max, maxWatchAction, true);
           ctrl.$parsers.push(maxParseValidator);
           ctrl.$formatters.push(maxFormatValidator);
         }
@@ -368,15 +408,13 @@ angular.module('angular-momentjs', [])
           steppedViewValue = (momentViewStepped || momentView).format(viewFormat);
 
           scope.$apply(function() {
-            element.val(steppedViewValue);
             ctrl.$setViewValue(steppedViewValue);
+            ctrl.$render();
           });
 
         };
 
         element.on('mousewheel keydown', inputStepHandler);
-
-
 
       };
     }

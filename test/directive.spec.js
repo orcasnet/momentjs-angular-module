@@ -45,7 +45,11 @@ describe('$moment', function () {
       $scope   = _$rootScope_.$new();
       $compile = _$compile_;
       $timeout = _$timeout_;
-      compile  = function(markup) { return $compile(markup)($scope); };
+      compile  = function(markup) {
+        var elem = $compile(markup)($scope);
+        $scope.$digest();
+        return elem;
+      };
 
       consoleLog = console.log || angular.noop;
     }));
@@ -130,6 +134,16 @@ describe('$moment', function () {
         expect($scope.date).toBe(modelDate);
       });
 
+      it('should format the model if initialized after model is defined', function() {
+        $scope.$apply("dateModelFormat = 'L'");
+        $scope.$apply("dateViewFormat  = 'X'");
+        $scope.$apply("date = '"+ viewDate +"'");
+
+        var input = compile(momentInputViewModelFormat);
+
+        expect($scope.date).toBe(viewDate);
+        expect(input.val()).toBe(modelDate);
+      });
 
       // Model-side min/max tests
 
@@ -158,6 +172,21 @@ describe('$moment', function () {
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(false);
         expect(input.val()).toBe(viewDate);
+      });
+
+      it('should validate the model against min/max if compiled after model is set', function() {
+
+        $scope.$apply("date = '"+ modelDateHighest +"'");
+        $scope.$apply("dateMin = '"+ modelDateLower +"'");
+        $scope.$apply("dateMax = '"+ modelDateHigher +"'");
+
+        var input = compile(momentInputMinMax),
+            ctrl  = input.controller('ngModel');
+            
+        expect(ctrl.$error.min).toBe(false);
+        expect(ctrl.$error.max).toBe(true);
+        expect(input.val()).toBe('');
+        expect($scope.date).toBe(modelDateHighest);
       });
 
       it('should validate the model against min and max array values', function() {
