@@ -33,7 +33,9 @@ Used to configure defaults across the module.
 
 * **defaultViewFormat(** {string} **)**<br> Set the default Moment format to be used for the view value. Defaults to `L`, a locale dependent format set to `MM/DD/YYYY` for `moment.lang('en')`.
 
-* **strict(** {boolean} **)**<br> Set whether dates should be parsed strictly. Strict parsing requires that the format and input match exactly. Defaults to `true`.
+* **strictModel(** {boolean} **)**<br> Set whether model date values should be parsed strictly or not. Strict parsing requires that the format and input match exactly. Defaults to `true`.
+
+* **strictView(** {boolean} **)**<br> Set whether view date values should be parsed strictly. Strict parsing requires that the format and input match exactly. Defaults to `true`.
  
 
 ### Directive
