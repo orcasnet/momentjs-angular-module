@@ -1,3 +1,9 @@
+/*
+ Angular Moment.js v0.2.0
+ (c) 2014 Shaun Grady https://github.com/shaungrady/angular-momentjs
+ License: MIT
+*/
+
 'use strict';
 
 angular.module('moment', [])
