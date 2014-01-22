@@ -16,7 +16,7 @@ angular.module('angular-momentjs', [])
   // E.g. 1-31-2000, M-D-YYYY is invalid.
   var config = {
     $strictView: true,
-    $strictModel: false,
+    $strictModel: true,
     $defaultViewFormat: 'L',
     $defaultModelFormat: moment.defaultFormat,
     $parseFormat: $parseFormat
