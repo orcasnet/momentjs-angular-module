@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('angular-momentjs', [])
+angular.module('moment', [])
 
 .constant('indexOf', function indexOf(array, obj) {
   // Taken from github.com/angular/angular.js

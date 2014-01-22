@@ -18,9 +18,9 @@ More features are planned, including a suite of filters and a date picker.
 [2]: http://angularjs.org/
 
 ## Installing
-After including the module script on your page, declare `angular-momentjs` as a dependency of your app:
+After including the module script on your page, declare `moment` as a dependency of your app:
 ```
-angular.module('myApp', ['angular-momentjs']);
+angular.module('myApp', ['moment']);
 ```
 
 ## Usage
