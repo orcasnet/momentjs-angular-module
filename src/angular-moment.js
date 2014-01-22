@@ -15,7 +15,8 @@ angular.module('angular-momentjs', [])
   // Strict parsing has trouble in Moment.js v2.3—2.5 with short tokens
   // E.g. 1-31-2000, M-D-YYYY is invalid.
   var config = {
-    $strict: true,
+    $strictView: true,
+    $strictModel: false,
     $defaultViewFormat: 'L',
     $defaultModelFormat: moment.defaultFormat,
     $parseFormat: $parseFormat
@@ -41,18 +42,27 @@ angular.module('angular-momentjs', [])
     return this;
   };
 
-  this.strict = function(bool) {
+  this.strictView = function(bool) {
     if (typeof bool === 'boolean')
-      config.$strict = bool;
+      config.$strictView = bool;
+    return this;
+  };
+
+  this.strictModel = function(bool) {
+    if (typeof bool === 'boolean')
+      config.$strictModel = bool;
     return this;
   };
 
   this.$get = function() {
-    if (angular.isDefined(moment.$strict))
+    if (angular.isDefined(moment.$strictView))
       return moment;
     try {
-      Object.defineProperty(moment, '$strict', {
-        value: config.$strict
+      Object.defineProperty(moment, '$strictView', {
+        value: config.$strictView
+      });
+      Object.defineProperty(moment, '$strictModel', {
+        value: config.$strictModel
       });
       Object.defineProperty(moment, '$defaultViewFormat', {
         value: config.$defaultViewFormat
@@ -108,13 +118,14 @@ angular.module('angular-momentjs', [])
             ctrl.$setViewValue(ctrl.$viewValue);
         };
         var reformatModelValue = function() {
-
           // Is there a better way to resend the model value through the formatter pipeline?
           var modelValue = ctrl.$modelValue;
-          $timeout(function() {
-            scope.$apply(function() { scope[attr.ngModel] = modelValue + ' '; });
-            scope.$apply(function() { scope[attr.ngModel] = modelValue; });
-          });
+          if (!ctrl.$isEmpty(modelValue)) {
+            $timeout(function() {
+              scope.$apply(function() { scope[attr.ngModel] = modelValue + ' '; });
+              scope.$apply(function() { scope[attr.ngModel] = modelValue; });
+            }, 0, false);
+          }
         };
 
         var setMinViewModelMoments = function() {
@@ -138,9 +149,10 @@ angular.module('angular-momentjs', [])
         // Date Validation and Formatting
         //////////////////////////////////
 
-        var parseValidateFormatDate = function(inputFormat, outputFormat, value) {
-          var moment  = $moment(value, inputFormat, $moment.$strict),
+        var parseValidateFormatDate = function(strict, inputFormat, outputFormat, value) {
+          var moment  = $moment(value, inputFormat, strict),
               isEmpty = ctrl.$isEmpty(value);
+
           if (!isEmpty && !moment.isValid()) {
             ctrl.$setValidity('date', false);
             return undefined;
@@ -150,8 +162,8 @@ angular.module('angular-momentjs', [])
           }
         };
 
-        var dateParser = function(value) { return parseValidateFormatDate(viewFormat, modelFormat, value); };
-        var dateFormatter = function(value) { return parseValidateFormatDate(modelFormat, viewFormat, value); };
+        var dateParser = function(value) { return parseValidateFormatDate($moment.$strictView, viewFormat, modelFormat, value); };
+        var dateFormatter = function(value) { return parseValidateFormatDate($moment.$strictModel, modelFormat, viewFormat, value); };
         // Parser needs to come after the rest of the parsers in this directive so they don't get a reformatted value
         ctrl.$formatters.push(dateFormatter);
 
@@ -167,9 +179,9 @@ angular.module('angular-momentjs', [])
         }
 
         if (attr.viewFormat) {
-          scope.$watch(attr.viewFormat, function viewFormatWatchAction(format, oldFormat) {
+          scope.$watch(attr.viewFormat, function viewFormatWatchAction(format) {
             format = format || $moment.$defaultViewFormat;
-            if (format === oldFormat) return;
+            if (format === viewFormat) return;
             viewFormat = format;
             setPlaceholder(format);
             setMinViewModelMoments();
@@ -179,9 +191,9 @@ angular.module('angular-momentjs', [])
         }
 
         if (attr.modelFormat) {
-          scope.$watch(attr.modelFormat, function modelFormatWatchAction(format, oldFormat) {
+          scope.$watch(attr.modelFormat, function modelFormatWatchAction(format) {
             format = format || $moment.$defaultModelFormat;
-            if (format === oldFormat) return;
+            if (format === modelFormat) return;
             modelFormat = format;
             setMinViewModelMoments();
             setMaxViewModelMoments();
@@ -206,7 +218,7 @@ angular.module('angular-momentjs', [])
           }, true);
 
           var minParseValidator = function(value) {
-            var momentValue = $moment(value, viewFormat, $moment.$strict);
+            var momentValue = $moment(value, viewFormat, $moment.$strictView);
             if (!ctrl.$isEmpty(value) && momentMinModel && momentValue.isValid() && momentValue.isBefore(momentMinView)) {
               ctrl.$setValidity('min', false);
               return undefined;
@@ -217,7 +229,7 @@ angular.module('angular-momentjs', [])
           };
 
           var minFormatValidator = function(value) {
-            var momentValue = $moment(value, modelFormat, $moment.$strict);
+            var momentValue = $moment(value, modelFormat, $moment.$strictModel);
             if (!ctrl.$isEmpty(value) && momentMinModel && momentValue.isValid() && momentValue.isBefore(momentMinModel)) {
               ctrl.$setValidity('min', false);
               return undefined;
@@ -244,7 +256,7 @@ angular.module('angular-momentjs', [])
           }, true);
 
           var maxParseValidator = function(value) {
-            var momentValue = $moment(value, viewFormat, $moment.$strict);
+            var momentValue = $moment(value, viewFormat, $moment.$strictView);
             if (!ctrl.$isEmpty(value) && momentMaxModel && momentValue.isValid() && momentValue.isAfter(momentMaxView)) {
               ctrl.$setValidity('max', false);
               return undefined;
@@ -255,7 +267,7 @@ angular.module('angular-momentjs', [])
           };
 
           var maxFormatValidator = function(value) {
-            var momentValue = $moment(value, modelFormat, $moment.$strict);
+            var momentValue = $moment(value, modelFormat, $moment.$strictModel);
             if (!ctrl.$isEmpty(value) && momentMaxModel && momentValue.isValid() && momentValue.isAfter(momentMaxModel)) {
               ctrl.$setValidity('max', false);
               return undefined;

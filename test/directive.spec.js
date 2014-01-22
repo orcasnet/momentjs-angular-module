@@ -112,12 +112,11 @@ describe('$moment', function () {
       it('should reformat view/model based on view- and model-format attrs', function() {
         var input = compile(momentInputViewModelFormat),
             ctrl  = input.controller('ngModel');
-        $scope.$apply("date = '"+ viewDate +"'");
 
-        // Flip default view and model formats so model becomes valid
+        // Flip default view and model formats
         $scope.$apply("dateModelFormat = 'L'");
         $scope.$apply("dateViewFormat  = 'X'");
-        $timeout.flush();
+        $scope.$apply("date = '"+ viewDate +"'");
         expect($scope.date).toBe(viewDate);
         expect(input.val()).toBe(modelDate);
 
