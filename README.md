@@ -29,13 +29,13 @@ angular.module('myApp', ['moment']);
 Used to configure defaults across the module.
 #### Methods
 
-* **defaultModelFormat(** {string} **)**<br> Set the default Moment format to be used for the model value. Defaults to `moment.defaultFormat`, which is ISO8601 out-of-the-box (`YYYY-MM-DDTHH:mm:ssZ`).
+* **defaultModelFormat(**`string`**)**<br> Set the default Moment format to be used for the model value. Defaults to `moment.defaultFormat`, which is ISO8601 out-of-the-box (`YYYY-MM-DDTHH:mm:ssZ`).
 
-* **defaultViewFormat(** {string} **)**<br> Set the default Moment format to be used for the view value. Defaults to `L`, a locale dependent format set to `MM/DD/YYYY` for `moment.lang('en')`.
+* **defaultViewFormat(**`string`**)**<br> Set the default Moment format to be used for the view value. Defaults to `L`, a locale dependent format set to `MM/DD/YYYY` for `moment.lang('en')`.
 
-* **strictModel(** {boolean} **)**<br> Set whether model date values should be parsed strictly or not. Strict parsing requires that the format and input match exactly. Defaults to `true`.
+* **strictModel(**`boolean`**)**<br> Set whether model date values should be parsed strictly or not. Strict parsing requires that the format and input match exactly. Defaults to `true`.
 
-* **strictView(** {boolean} **)**<br> Set whether view date values should be parsed strictly. Strict parsing requires that the format and input match exactly. Defaults to `true`.
+* **strictView(**`boolean`**)**<br> Set whether view date values should be parsed strictly. Strict parsing requires that the format and input match exactly. Defaults to `true`.
  
 
 ### Directive
