@@ -4,7 +4,7 @@ describe('$moment', function () {
 
     var $moment;
 
-    beforeEach(angular.mock.module('angular-momentjs'));
+    beforeEach(angular.mock.module('moment'));
     beforeEach(inject(function (_$moment_) {
       $moment = _$moment_;
     }));
@@ -17,7 +17,7 @@ describe('$moment', function () {
 
       it('should be extended with angular-momentjs properties and methods', function() {
         expect($moment.$strictView).toBe(true);
-        expect($moment.$strictModel).toBe(false);
+        expect($moment.$strictModel).toBe(true);
         expect($moment.$defaultViewFormat).toBeDefined();
         expect($moment.$defaultModelFormat).toBeDefined();
         expect($moment.$parseFormat).toBeDefined();

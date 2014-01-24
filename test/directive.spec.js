@@ -21,6 +21,7 @@ describe('$moment', function () {
     var viewDate  = '01/31/1986',
         modelDate = '507542400';
 
+
     var modelDateLowest  = '307542400',
         modelDateLower   = '407542400',
         modelDateHigher  = '607542400',
@@ -39,7 +40,7 @@ describe('$moment', function () {
         plusKeyEvent   = ['keydown', { type:'keydown', which:107 }],
         minusKeyEvent  = ['keydown', { type:'keydown', which:109 }];
 
-    beforeEach(angular.mock.module('angular-momentjs'));
+    beforeEach(angular.mock.module('moment'));
     beforeEach(inject(function (_$moment_, _$rootScope_, _$compile_, _$timeout_) {
       $moment  = _$moment_;
       $scope   = _$rootScope_.$new();
