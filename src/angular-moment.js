@@ -1,5 +1,5 @@
 /*
- Angular Moment.js v0.2.0
+ Angular Moment.js v0.2.1
  (c) 2014 Shaun Grady https://github.com/shaungrady/angular-momentjs
  License: MIT
 */
