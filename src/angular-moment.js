@@ -1,5 +1,5 @@
 /*
- Angular Moment.js v0.2.0
+ Angular Moment.js v0.2.1
  (c) 2014 Shaun Grady https://github.com/shaungrady/angular-momentjs
  License: MIT
 */
@@ -117,6 +117,7 @@ angular.module('moment', [])
 
         setPlaceholder(viewFormat);
 
+
         // Utility Functions
         /////////////////////
 
@@ -219,11 +220,15 @@ angular.module('moment', [])
             var moment;
             if (angular.isArray(minAttr) && minAttr.length == 2)
               moment = $moment(minAttr[0], minAttr[1]);
-            else if (minAttr && angular.isString(minAttr))
-              moment = $moment(minAttr, $moment.$defaultModelFormat);
+            else if (minAttr && angular.isString(minAttr)) {
+              if (minAttr == 'today')
+                moment = $moment();
+              else
+                moment = $moment(minAttr, $moment.$defaultModelFormat);
+            }
             else
               moment = null;
-
+            // Has the min changed?
             if (!moment ^ !momentMin || (moment && momentMin && moment.format('X') !== momentMin.format('X'))) {
               momentMin = moment;
               setMinViewModelMoments();
@@ -276,8 +281,12 @@ angular.module('moment', [])
             var moment;
             if (angular.isArray(maxAttr) && maxAttr.length == 2)
               moment = $moment(maxAttr[0], maxAttr[1]);
-            else if (maxAttr && angular.isString(maxAttr))
-              moment = $moment(maxAttr, $moment.$defaultModelFormat);
+            else if (maxAttr && angular.isString(maxAttr)) {
+              if (maxAttr == 'today')
+                moment = $moment();
+              else
+                moment = $moment(maxAttr, $moment.$defaultModelFormat);
+            }
             else
               moment = null;
 

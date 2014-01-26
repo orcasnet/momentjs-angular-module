@@ -21,6 +21,10 @@ describe('$moment', function () {
     var viewDate  = '01/31/1986',
         modelDate = '507542400';
 
+    var todayModel     = moment().format('X'),
+        tomorrowModel  = moment().add(1, 'day').format('X'),
+        yesterdayModel = moment().subtract(1, 'day').format('X');
+
     var modelDateLowest  = '307542400',
         modelDateLower   = '407542400',
         modelDateHigher  = '607542400',
@@ -39,7 +43,7 @@ describe('$moment', function () {
         plusKeyEvent   = ['keydown', { type:'keydown', which:107 }],
         minusKeyEvent  = ['keydown', { type:'keydown', which:109 }];
 
-    beforeEach(angular.mock.module('angular-momentjs'));
+    beforeEach(angular.mock.module('moment'));
     beforeEach(inject(function (_$moment_, _$rootScope_, _$compile_, _$timeout_) {
       $moment  = _$moment_;
       $scope   = _$rootScope_.$new();
@@ -253,6 +257,26 @@ describe('$moment', function () {
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(true);
         expect($scope.date).toBeUndefined();
+      });
+
+      it('should accept "today" keyword for min and max attrs', function() {
+        var input = compile(momentInputMinMax),
+            ctrl  = input.controller('ngModel');
+
+        $scope.$apply("date    = '"+ todayModel +"'");
+        $scope.$apply("dateMin = 'today'");
+        $scope.$apply("dateMax = 'today'");
+
+        expect(ctrl.$error.min).toBe(false);
+        expect(ctrl.$error.max).toBe(false);
+
+        $scope.$apply("date = '"+ yesterdayModel +"'");
+        expect(ctrl.$error.min).toBe(true);
+        expect(ctrl.$error.max).toBe(false);
+
+        $scope.$apply("date = '"+ tomorrowModel +"'");
+        expect(ctrl.$error.min).toBe(false);
+        expect(ctrl.$error.max).toBe(true);
       });
 
       // End view-size min/max tests
