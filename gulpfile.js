@@ -3,8 +3,7 @@ var gulp   = require('gulp'),
     concat = require('gulp-concat'),
     uglify = require('gulp-uglify'),
     rename = require('gulp-rename'),
-    karma  = require('gulp-karma'),
-    notify = require('gulp-notify');
+    karma  = require('gulp-karma');
 
 var jsFiles = [
   './src/angular-moment.js',
@@ -14,15 +13,12 @@ var jsFiles = [
 
 // Task to run during development
 gulp.task('develop', function() {
-  karmaAction = 'watch';
   gulp.watch(jsFiles, ['js']);
   karmaTest('watch');
 });
 
 // Task to build to dist folder
-gulp.task('build', ['js'], function() {
-  karmaTest('run');
-});
+gulp.task('build', ['js', 'test']);
 
 
 // Subtasks
@@ -38,10 +34,12 @@ gulp.task('js', function() {
       preserveComments: 'some'
     }))
     .pipe(gulp.dest('./dist'));
-    // .pipe(notify({ message: 'Scripts task complete' }));
 });
 
+gulp.task('test', karmaTest);
+
 function karmaTest(action) {
+  action = action || 'run';
   return gulp.src('./defined-in-karma.conf.js')
     .pipe(karma({
       configFile: 'karma.conf.js',
