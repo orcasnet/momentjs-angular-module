@@ -18,7 +18,7 @@ module.exports = function(config) {
       'bower_components/angular/angular.js',
       'bower_components/angular-mocks/angular-mocks.js',
       'bower_components/momentjs/moment.js',
-      'src/angular-moment.js',
+      'dist/angular-moment.js',
       'test/*.spec.js'
     ],
 

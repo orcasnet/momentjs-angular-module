@@ -8,16 +8,20 @@
   "main": "src/angular-moment.js",
   "dependencies": {},
   "devDependencies": {
-    "grunt": "~0.4",
-    "grunt-karma": "0.7.0",
+    "gulp": "~3.5.0",
+    "gulp-util": "~2.2.12",
+    "gulp-concat": "~2.1.7",
+    "gulp-karma": "0.0.2",
+    "gulp-notify": "~0.3.5-0",
+    "gulp-rename": "~0.2.2",
+    "gulp-uglify": "~0.2.0",
     "karma": "~0.10",
     "karma-coverage": "~0.1",
-    "load-grunt-tasks": "~0.2",
     "karma-jasmine": "0.1",
     "karma-chrome-launcher": "~0.1",
     "karma-safari-launcher": "~0.1",
     "karma-firefox-launcher": "~0.1"
-  }, 
+  },
   "scripts": {
     "test": "grunt"
   },
