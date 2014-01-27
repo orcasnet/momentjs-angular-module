@@ -73,7 +73,14 @@ npm install
 bower install
 ```
 
-To run Karma tests:
+### Task Running
+
+To develop:
 ```
-grunt
+gulp develop
+```
+
+To build:
+```
+gulp build
 ```
