@@ -39,9 +39,7 @@ describe('$moment', function () {
     var wheelUpEvent   = ['mousewheel', { type:'wheel', wheelDelta:120, which:1 }],
         wheelDownEvent = ['mousewheel', { type:'wheel', wheelDelta:-120, which:1 }],
         upKeyEvent     = ['keydown', { type:'keydown', which:38 }],
-        downKeyEvent   = ['keydown', { type:'keydown', which:40 }],
-        plusKeyEvent   = ['keydown', { type:'keydown', which:107 }],
-        minusKeyEvent  = ['keydown', { type:'keydown', which:109 }];
+        downKeyEvent   = ['keydown', { type:'keydown', which:40 }];
 
     beforeEach(angular.mock.module('moment'));
     beforeEach(inject(function (_$moment_, _$rootScope_, _$compile_, _$timeout_) {
@@ -310,7 +308,7 @@ describe('$moment', function () {
 
       // Stepping
 
-      it('should set value to today\'s date on up, down, plus, or minus keys, or mousewheel', function() {
+      it('should set value to today\'s date on up or down arrow keys, or mousewheel', function() {
         var input = compile(momentInput),
             today = $moment().format('L');
 
@@ -328,15 +326,6 @@ describe('$moment', function () {
         $scope.$apply("date = undefined");
         input.triggerHandler.apply(input, downKeyEvent);
         expect(input.val()).toBe(today);
-
-        $scope.$apply("date = undefined");
-        input.triggerHandler.apply(input, plusKeyEvent);
-        expect(input.val()).toBe(today);
-
-        $scope.$apply("date = undefined");
-        input.triggerHandler.apply(input, minusKeyEvent);
-        expect(input.val()).toBe(today);
-
       });
 
       it('should step by one day with a value', function() {
@@ -351,7 +340,7 @@ describe('$moment', function () {
         expect(ctrl.$viewValue).toBe(tomorrow);
 
         input.triggerHandler.apply(input, downKeyEvent);
-        input.triggerHandler.apply(input, minusKeyEvent);
+        input.triggerHandler.apply(input, downKeyEvent);
         expect(ctrl.$viewValue).toBe(yesterday);
       });
 
@@ -402,11 +391,11 @@ describe('$moment', function () {
         $scope.$apply("dateMin = '"+ modelDateLower +"'");
         $scope.$apply("dateMax = '"+ modelDateHigher +"'");
 
-        input.triggerHandler.apply(input, minusKeyEvent);
+        input.triggerHandler.apply(input, downKeyEvent);
         expect(ctrl.$viewValue).toBe(viewDateLower);
 
         $scope.$apply("date = undefined");
-        input.triggerHandler.apply(input, plusKeyEvent);
+        input.triggerHandler.apply(input, upKeyEvent);
         expect(ctrl.$viewValue).toBe(viewDateLower);
       });
 

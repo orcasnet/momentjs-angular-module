@@ -395,19 +395,19 @@ angular.module('moment')
           if (!event.type && eventData && eventData.type)
             angular.extend(event, eventData);
 
-          //                           Up, Down, Plus, Minus
-          if (event.type == 'keydown' && !/38|40|107|109/.test(event.which)) return;
+          //                               Up|Dn
+          if (event.type == 'keydown' && !/38|40/.test(event.which)) return;
           event.preventDefault();
 
           var isEmpty    = ctrl.$isEmpty(ctrl.$viewValue),
-              momentView = isEmpty ? $moment() : $moment(ctrl.$viewValue, viewFormat),
+              momentView = isEmpty ? $moment() : $moment(ctrl.$viewValue, viewFormat, $moment.$strictView),
               wheelDelta, isIncrease, shiftedStepUnit, momentViewStepped, steppedViewValue;
 
           if (!momentView.isValid())
             return;
 
           if (event.type == 'keydown')
-            isIncrease = /38|107/.test(event.which);
+            isIncrease = /38/.test(event.which);
           else {
             wheelDelta = event.originalEvent ? event.originalEvent.wheelDelta : event.wheelDelta;
             isIncrease = wheelDelta / 120 > 0;
