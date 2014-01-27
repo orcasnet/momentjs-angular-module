@@ -24,8 +24,7 @@ angular.module('moment')
         if (!ctrl)
           return;
         
-        var setPlaceholder = function(format) { element.attr('placeholder', $moment.$parseFormat(format)); },
-            // Formats may be overridden if attr.(view|model)Format or attr.format is set
+        var // Formats may be overridden if attr.(view|model)Format or attr.format is set
             viewFormat  = $moment.$defaultViewFormat,
             modelFormat = $moment.$defaultModelFormat,
             // Min/max must be reparsed using view/model formats to account for differences
@@ -35,11 +34,13 @@ angular.module('moment')
             momentMax, momentMaxView, momentMaxModel,
             stepUnit, stepQuantity;
 
-        setPlaceholder(viewFormat);
-
 
         // Utility Functions
         /////////////////////
+
+        var setPlaceholder = function(format) {
+          element.attr('placeholder', $moment.$parseFormat(format));
+        };
 
         var reparseViewValue = function() {
           if (!ctrl.$isEmpty(ctrl.$viewValue))
@@ -97,6 +98,9 @@ angular.module('moment')
         ctrl.$formatters.push(dateFormatter);
 
         if (attr.format && (!attr.viewFormat || !attr.modelFormat)) {
+          viewFormat  = scope.$eval(attr.format) || viewFormat;
+          modelFormat = scope.$eval(attr.format) || modelFormat;
+
           scope.$watch(attr.format, function formatWatchAction(value) {
             viewFormat  = value;
             modelFormat = value;
@@ -109,6 +113,7 @@ angular.module('moment')
 
         if (attr.viewFormat) {
           viewFormat = scope.$eval(attr.viewFormat) || viewFormat;
+
           scope.$watch(attr.viewFormat, function viewFormatWatchAction(format) {
             format = format || $moment.$defaultViewFormat;
             if (format === viewFormat) return;
@@ -122,6 +127,7 @@ angular.module('moment')
 
         if (attr.modelFormat) {
           modelFormat = scope.$eval(attr.modelFormat) || modelFormat;
+
           scope.$watch(attr.modelFormat, function modelFormatWatchAction(format) {
             format = format || $moment.$defaultModelFormat;
             if (format === modelFormat) return;
@@ -131,6 +137,8 @@ angular.module('moment')
             reparseViewValue();
           });
         }
+
+        setPlaceholder(viewFormat);
 
         // Min/Max Validation
         //////////////////////
