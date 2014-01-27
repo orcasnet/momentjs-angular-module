@@ -8,13 +8,13 @@ var gulp   = require('gulp'),
 
 gulp.task('default', function() {
   gulp.run('scripts', 'test');
+});
 
-  // gulp.src('./defined-in-karma.conf.js')
-  //   .pipe(karma({
-  //     configFile: 'karma.conf.js',
-  //     action: 'watch'
-  //   }));
-
+gulp.task('watch', function() {
+  gulp.watch('./src/*.js', function(event) {
+    gulp.run('scripts');
+  });
+  gulp.run('test-watch');
 });
 
 gulp.task('scripts', function() {
@@ -41,5 +41,14 @@ gulp.task('test', function() {
     .pipe(karma({
       configFile: 'karma.conf.js',
       action: 'run'
+    }));
+});
+
+gulp.task('test-watch', function() {
+  // Be sure to return the stream
+  return gulp.src('./defined-in-karma.conf.js')
+    .pipe(karma({
+      configFile: 'karma.conf.js',
+      action: 'watch'
     }));
 });
