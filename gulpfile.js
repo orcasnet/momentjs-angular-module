@@ -6,23 +6,30 @@ var gulp   = require('gulp'),
     karma  = require('gulp-karma'),
     notify = require('gulp-notify');
 
-gulp.task('default', function() {
-  gulp.run('scripts', 'test');
+var jsFiles = [
+  './src/angular-moment.js',
+  './src/angular-moment.service.js',
+  './src/angular-moment.directive.js'
+];
+
+// Task to run during development
+gulp.task('develop', function() {
+  karmaAction = 'watch';
+  gulp.watch(jsFiles, ['js']);
+  karmaTest('watch');
 });
 
-gulp.task('watch', function() {
-  gulp.watch('./src/*.js', function(event) {
-    gulp.run('scripts');
-  });
-  gulp.run('test-watch');
+// Task to build to dist folder
+gulp.task('build', ['js'], function() {
+  karmaTest('run');
 });
 
-gulp.task('scripts', function() {
-  gulp.src([
-      './src/angular-moment.js',
-      './src/angular-moment.service.js',
-      './src/angular-moment.directive.js'
-    ])
+
+// Subtasks
+////////////
+
+gulp.task('js', function() {
+  gulp.src(jsFiles)
     .pipe(concat("angular-moment.js"))
     .pipe(gulp.dest('./dist/'))
     .pipe(rename({ suffix: '.min' }))
@@ -30,25 +37,14 @@ gulp.task('scripts', function() {
       outSourceMaps: true,
       preserveComments: 'some'
     }))
-    .pipe(gulp.dest('./dist'))
-    .pipe(notify({ message: 'Scripts task complete' }));
+    .pipe(gulp.dest('./dist'));
+    // .pipe(notify({ message: 'Scripts task complete' }));
 });
 
-// Karma testing
-gulp.task('test', function() {
-  // Be sure to return the stream
+function karmaTest(action) {
   return gulp.src('./defined-in-karma.conf.js')
     .pipe(karma({
       configFile: 'karma.conf.js',
-      action: 'run'
+      action: action
     }));
-});
-
-gulp.task('test-watch', function() {
-  // Be sure to return the stream
-  return gulp.src('./defined-in-karma.conf.js')
-    .pipe(karma({
-      configFile: 'karma.conf.js',
-      action: 'watch'
-    }));
-});
+}
