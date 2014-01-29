@@ -21,7 +21,7 @@ angular.module('moment')
       outputFormat = format;
     else if (angular.isArray(format)) {
       inputFormat  = format[0];
-      outputFormat = format[1];
+      outputFormat = format[1] || outputFormat;
       strict       = format[2];
     }
 
