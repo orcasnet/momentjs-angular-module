@@ -8,6 +8,7 @@ var gulp   = require('gulp'),
 var jsFiles = [
   './src/angular-moment.js',
   './src/angular-moment.service.js',
+  './src/angular-moment.filters.js',
   './src/angular-moment.directive.js'
 ];
 
