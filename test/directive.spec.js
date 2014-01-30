@@ -347,20 +347,20 @@ describe('$moment', function () {
       it('should step by one month if shift key is pressed', function() {
         var input     = compile(momentInput),
             ctrl                = input.controller('ngModel'),
-            today               = $moment().format('L'),
-            nextMonth           = $moment().add(1, 'month').format('L'),
+            monthStart          = $moment().startOf('month').format('L'),
+            nextMonth           = $moment().startOf('month').add(1, 'month').format('L'),
             wheelUpShiftEvent   = angular.copy(wheelUpEvent),
             wheelDownShiftEvent = angular.copy(wheelDownEvent);
 
         wheelUpShiftEvent[1].shiftKey   = true;
         wheelDownShiftEvent[1].shiftKey = true;
 
-        ctrl.$setViewValue(today);
+        ctrl.$setViewValue(monthStart);
         input.triggerHandler.apply(input, wheelUpShiftEvent);
         expect(ctrl.$viewValue).toBe(nextMonth);
 
         input.triggerHandler.apply(input, wheelDownShiftEvent);
-        expect(ctrl.$viewValue).toBe(today);
+        expect(ctrl.$viewValue).toBe(monthStart);
       });
 
       it('should not step if input view value is invalid', function() {
@@ -433,22 +433,19 @@ describe('$moment', function () {
 
       it('should respect the step attribute and ignore pluralization of unit', function() {
         var input = compile(momentInputStep),
-            ctrl                = input.controller('ngModel'),
-            today               = $moment().format('L'),
-            nextMonth           = $moment().add(1, 'month').format('L');
+            ctrl  = input.controller('ngModel'),
+            jan1  = $moment('01/01/2000').format('L'),
+            feb1  = $moment('01/01/2000').add(1, 'month').format('L');
+
+        ctrl.$setViewValue(jan1);
 
         $scope.$apply("dateStep = '1 month'");
-
         input.triggerHandler.apply(input, upKeyEvent);
-        expect(ctrl.$viewValue).toBe(today);
+        expect(ctrl.$viewValue).toBe(feb1);
 
         $scope.$apply("dateStep = '1 months'");
-
-        input.triggerHandler.apply(input, upKeyEvent);
-        expect(ctrl.$viewValue).toBe(nextMonth);
-
         input.triggerHandler.apply(input, downKeyEvent);
-        expect(ctrl.$viewValue).toBe(today);
+        expect(ctrl.$viewValue).toBe(jan1);
       });
 
       it('should fall back to default stepping if step attribute is invalid', function() {
