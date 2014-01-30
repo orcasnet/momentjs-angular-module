@@ -102,23 +102,27 @@ angular.module('moment')
           // Date validation
           if (!isEmpty && !isValid) {
             ctrl.$setValidity('date', false);
-            ctrl.$setValidity('min', true);
-            ctrl.$setValidity('max', true);
+            if (attr.min) ctrl.$setValidity('min', true);
+            if (attr.max) ctrl.$setValidity('max', true);
             return undefined; }
           else
             ctrl.$setValidity('date', true);
 
-          // Max validation
-          if (!isEmpty && isValid && moments.max.attr && moment.isAfter(moments.max[origin]))
-            ctrl.$setValidity('max', false);
-          else
-            ctrl.$setValidity('max', true);
-
           // Min validation
-          if (!isEmpty && isValid && moments.min.attr && moment.isBefore(moments.min[origin]))
-            ctrl.$setValidity('min', false);
-          else
-            ctrl.$setValidity('min', true);
+          if (attr.min) {
+            if (!isEmpty && isValid && moments.min.attr && moment.isBefore(moments.min[origin]))
+              ctrl.$setValidity('min', false);
+            else
+              ctrl.$setValidity('min', true);
+          }
+
+          // Max validation
+          if (attr.max) {
+            if (!isEmpty && isValid && moments.max.attr && moment.isAfter(moments.max[origin]))
+              ctrl.$setValidity('max', false);
+            else
+              ctrl.$setValidity('max', true);
+          }
 
           // Output and formatting
           if (ctrl.$error.min || ctrl.$error.max)
