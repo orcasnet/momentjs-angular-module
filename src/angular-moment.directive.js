@@ -27,12 +27,22 @@ angular.module('moment')
         var // Formats may be overridden if attr.(view|model)Format or attr.format is set
             viewFormat  = $moment.$defaultViewFormat,
             modelFormat = $moment.$defaultModelFormat,
+            stepUnit, stepQuantity,
             // Min/max must be reparsed using view/model formats to account for differences
             // in date specificity. E.g., if min is '01-30-2000' and viewFormat is 'MM-YYYY'
             // and the model value is '01-2000'. 
-            momentMin, momentMinView, momentMinModel,
-            momentMax, momentMaxView, momentMaxModel,
-            stepUnit, stepQuantity;
+            moments = {
+              min: {
+                attr: null,
+                view: null,
+                model: null
+              },
+              max: {
+                attr: null,
+                view: null,
+                model: null
+              }
+            };
 
 
         // Utility Functions
@@ -58,40 +68,28 @@ angular.module('moment')
         };
 
         var setMinViewModelMoments = function() {
-          if (momentMin && momentMin.isValid()) {
-            momentMinView  = $moment(momentMin.format(viewFormat), viewFormat);
-            momentMinModel = $moment(momentMin.format(modelFormat), modelFormat);
+          if (moments.min.attr && moments.min.attr.isValid()) {
+            moments.min.view  = $moment(moments.min.attr.format(viewFormat), viewFormat);
+            moments.min.model = $moment(moments.min.attr.format(modelFormat), modelFormat);
           }
           else
-            momentMin = momentMinView  = momentMinModel = null;
+            moments.min.attr = moments.min.view  = moments.min.model = null;
         };
 
         var setMaxViewModelMoments = function() {
-          if (momentMax && momentMax.isValid()) {
-            momentMaxView  = $moment(momentMax.format(viewFormat), viewFormat);
-            momentMaxModel = $moment(momentMax.format(modelFormat), modelFormat);
+          if (moments.max.attr && moments.max.attr.isValid()) {
+            moments.max.view  = $moment(moments.max.attr.format(viewFormat), viewFormat);
+            moments.max.model = $moment(moments.max.attr.format(modelFormat), modelFormat);
           }
           else
-            momentMax = momentMaxView  = momentMaxModel = null;
+            moments.max.attr = moments.max.view  = moments.max.model = null;
         };
 
 
         // Date Validation and Formatting
         //////////////////////////////////
 
-        var noop = angular.noop;
-        var moments = {
-          min: {
-            attr:  null,
-            view:  null,
-            model: null
-          },
-          max: {
-            attr:  null,
-            view:  null,
-            model: null
-          }
-        };
+
 
         var doAllTheTheThings = function(origin, value) {
           var moment, isValid, isEmpty, inputFormat, outputFormat, strict;
@@ -217,8 +215,8 @@ angular.module('moment')
             else
               moment = null;
             // Has the min changed?
-            if (!moment ^ !momentMin || (moment && momentMin && moment.format('X') !== momentMin.format('X'))) {
-              momentMin = moment;
+            if (!moment ^ !moments.min.attr || (moment && moments.min.attr && moment.format('X') !== moments.min.attr.format('X'))) {
+              moments.min.attr = moment;
               setMinViewModelMoments();
               reparseViewValue();
             }
@@ -226,19 +224,19 @@ angular.module('moment')
 
           scope.$watch(attr.min, function minWatchAction(minAttr) {
             if (angular.isArray(minAttr) && minAttr.length == 2)
-              momentMin = $moment(minAttr[0], minAttr[1]);
+              moments.min.attr = $moment(minAttr[0], minAttr[1]);
             else if (minAttr && angular.isString(minAttr))
               // We're not using modelFormat as this value isn't directly related to this input
-              momentMin = $moment(minAttr, $moment.$defaultModelFormat);
+              moments.min.attr = $moment(minAttr, $moment.$defaultModelFormat);
             else
-              momentMin = null;
+              moments.min.attr = null;
             setMinViewModelMoments();
             reparseViewValue();
           }, true);
 
           var minParseValidator = function(value) {
             var momentValue = $moment(value, viewFormat, $moment.$strictView);
-            if (!ctrl.$isEmpty(value) && momentMinModel && momentValue.isValid() && momentValue.isBefore(momentMinView)) {
+            if (!ctrl.$isEmpty(value) && moments.min.model && momentValue.isValid() && momentValue.isBefore(moments.min.view)) {
               ctrl.$setValidity('min', false);
               return undefined;
             } else {
@@ -249,7 +247,7 @@ angular.module('moment')
 
           var minFormatValidator = function(value) {
             var momentValue = $moment(value, modelFormat, $moment.$strictModel);
-            if (!ctrl.$isEmpty(value) && momentMinModel && momentValue.isValid() && momentValue.isBefore(momentMinModel)) {
+            if (!ctrl.$isEmpty(value) && moments.min.model && momentValue.isValid() && momentValue.isBefore(moments.min.model)) {
               ctrl.$setValidity('min', false);
               return undefined;
             } else {
@@ -278,8 +276,8 @@ angular.module('moment')
             else
               moment = null;
 
-            if (!moment ^ !momentMax || (moment && momentMax && moment.format('X') !== momentMax.format('X'))) {
-              momentMax = moment;
+            if (!moment ^ !moments.max.attr || (moment && moments.max.attr && moment.format('X') !== moments.max.attr.format('X'))) {
+              moments.max.attr = moment;
               setMaxViewModelMoments();
               reparseViewValue();
             }
@@ -287,18 +285,18 @@ angular.module('moment')
 
           scope.$watch(attr.max, function maxWatchAction(maxAttr) {
             if (angular.isArray(maxAttr) && maxAttr.length == 2)
-              momentMax = $moment(maxAttr[0], maxAttr[1]);
+              moments.max.attr = $moment(maxAttr[0], maxAttr[1]);
             else if (maxAttr && angular.isString(maxAttr))
-              momentMax = $moment(maxAttr, $moment.$defaultModelFormat);
+              moments.max.attr = $moment(maxAttr, $moment.$defaultModelFormat);
             else
-              momentMax = null;
+              moments.max.attr = null;
             setMaxViewModelMoments();
             reparseViewValue();
           }, true);
 
           var maxParseValidator = function(value) {
             var momentValue = $moment(value, viewFormat, $moment.$strictView);
-            if (!ctrl.$isEmpty(value) && momentMaxModel && momentValue.isValid() && momentValue.isAfter(momentMaxView)) {
+            if (!ctrl.$isEmpty(value) && moments.max.model && momentValue.isValid() && momentValue.isAfter(moments.max.view)) {
               ctrl.$setValidity('max', false);
               return undefined;
             } else {
@@ -309,7 +307,7 @@ angular.module('moment')
 
           var maxFormatValidator = function(value) {
             var momentValue = $moment(value, modelFormat, $moment.$strictModel);
-            if (!ctrl.$isEmpty(value) && momentMaxModel && momentValue.isValid() && momentValue.isAfter(momentMaxModel)) {
+            if (!ctrl.$isEmpty(value) && moments.max.model && momentValue.isValid() && momentValue.isAfter(moments.max.model)) {
               ctrl.$setValidity('max', false);
               return undefined;
             } else {
@@ -378,19 +376,19 @@ angular.module('moment')
           else
             shiftedStepUnit = stepUnit;
 
-          if (isEmpty && momentMin)
+          if (isEmpty && moments.min.attr)
             // Always step an empty value to the min if specified
-            momentViewStepped = momentMinView.clone();
+            momentViewStepped = moments.min.view.clone();
           else if (isIncrease) {
-            if (isEmpty && !momentMin)
+            if (isEmpty && !moments.min.attr)
               // Then use today's date clamped to max 
-              momentViewStepped = momentView.max(momentMax ? momentMaxView : undefined);
-            else if (momentMin && momentView.isBefore(momentMinView))
-              momentViewStepped = momentMinView.clone();
-            else if (momentMax && !momentView.isAfter(momentMaxView))
+              momentViewStepped = momentView.max(moments.max.attr ? moments.max.view : undefined);
+            else if (moments.min.attr && momentView.isBefore(moments.min.view))
+              momentViewStepped = moments.min.view.clone();
+            else if (moments.max.attr && !momentView.isAfter(moments.max.view))
               // Then step value up, clamp to max
-              momentViewStepped = momentView.add(shiftedStepUnit, stepQuantity).max(momentMaxView);
-            else if (!momentMax)
+              momentViewStepped = momentView.add(shiftedStepUnit, stepQuantity).max(moments.max.view);
+            else if (!moments.max.attr)
               // If there's no max, increase; otherwise leave it exceeding max--we'll only bring it
               // back in bounds of the max when user decreases value. 
               // This mimic's browser vendor behavior with min/max stepping for input[type=number]
@@ -398,13 +396,13 @@ angular.module('moment')
           }
           // The opposite for decrease
           else {
-            if (isEmpty && !momentMax)
-              momentViewStepped = momentView.min(momentMin ? momentMinView : undefined);
-            else if (momentMax && momentView.isAfter(momentMaxView))
-              momentViewStepped = momentMaxView.clone();
-            else if (momentMin && !momentView.isBefore(momentMinView))
-              momentViewStepped = momentView.subtract(shiftedStepUnit, stepQuantity).min(momentMinView);
-            else if (!momentMin)
+            if (isEmpty && !moments.max.attr)
+              momentViewStepped = momentView.min(moments.min.attr ? moments.min.view : undefined);
+            else if (moments.max.attr && momentView.isAfter(moments.max.view))
+              momentViewStepped = moments.max.view.clone();
+            else if (moments.min.attr && !momentView.isBefore(moments.min.view))
+              momentViewStepped = momentView.subtract(shiftedStepUnit, stepQuantity).min(moments.min.view);
+            else if (!moments.min.attr)
               momentViewStepped = momentView.subtract(shiftedStepUnit, stepQuantity);
           }
 
