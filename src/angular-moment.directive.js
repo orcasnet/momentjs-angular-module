@@ -79,6 +79,66 @@ angular.module('moment')
         // Date Validation and Formatting
         //////////////////////////////////
 
+        var noop = angular.noop;
+        var moments = {
+          min: {
+            attr:  null,
+            view:  null,
+            model: null
+          },
+          max: {
+            attr:  null,
+            view:  null,
+            model: null
+          }
+        };
+
+        var doAllTheTheThings = function(origin, value) {
+          var moment, isValid, isEmpty, inputFormat, outputFormat, strict;
+
+          if (origin == 'view') {
+            inputFormat  = viewFormat;
+            outputFormat = modelFormat;
+            strict       = $moment.strictView;
+          } else {
+            inputFormat  = modelFormat;
+            outputFormat = viewFormat;
+            strict       = $moment.strictModel;
+          }
+
+          moment  = $moment(value, inputFormat, strict);
+          isValid = moment.isValid();
+          isEmpty = ctrl.$isEmpty(value);
+
+          if (!isEmpty && !isValid) {
+            ctrl.$setValidity('date', false);
+            return undefined; }
+          else
+            ctrl.$setValidity('date', true);
+
+          if (!isEmpty && isValid && moments.max.attr && moment.isAfter(moments.max[origin]))
+            ctrl.$setValidity('max', false);
+          else
+            ctrl.$setValidity('max', true);
+
+          if (!isEmpty && isValid && moments.min.attr && moment.isAfter(moments.min[origin]))
+            ctrl.$setValidity('min', false);
+          else
+            ctrl.$setValidity('min', true);
+
+          if (ctrl.$error.min || ctrl.$error.max)
+            return undefined;
+          else
+            return isEmpty ? value : moment.format(outputFormat);
+
+        };
+
+        var parser    = angular.bind(undefined, doAllTheTheThings, 'view');
+        var formatter = angular.bind(undefined, doAllTheTheThings, 'model');
+
+        // ctrl.$parsers.push(parser);
+        // ctrl.$formatters.push(formatter);
+
         var parseValidateFormatDate = function(strict, inputFormat, outputFormat, value) {
           var moment  = $moment(value, inputFormat, strict),
               isEmpty = ctrl.$isEmpty(value);
