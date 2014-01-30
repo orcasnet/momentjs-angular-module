@@ -69,24 +69,15 @@ angular.module('moment')
           }
         };
 
-        var setMinViewModelMoments = function() {
-          if (moments.min.attr && moments.min.attr.isValid()) {
-            moments.min.view  = $moment(moments.min.attr.format(viewFormat), viewFormat);
-            moments.min.model = $moment(moments.min.attr.format(modelFormat), modelFormat);
+        var setViewModelMomentsForAttr = function(attr) {
+          // attr is either 'min' or 'max'
+          if (moments[attr].attr && moments[attr].attr.isValid()) {
+            moments[attr].view  = $moment(moments[attr].attr.format(viewFormat), viewFormat);
+            moments[attr].model = $moment(moments[attr].attr.format(modelFormat), modelFormat);
           }
           else
-            moments.min.attr = moments.min.view  = moments.min.model = null;
+            moments[attr].attr = moments[attr].view  = moments[attr].model = null;
         };
-
-        var setMaxViewModelMoments = function() {
-          if (moments.max.attr && moments.max.attr.isValid()) {
-            moments.max.view  = $moment(moments.max.attr.format(viewFormat), viewFormat);
-            moments.max.model = $moment(moments.max.attr.format(modelFormat), modelFormat);
-          }
-          else
-            moments.max.attr = moments.max.view  = moments.max.model = null;
-        };
-
 
         // Date Validation and Formatting
         //////////////////////////////////
@@ -151,8 +142,8 @@ angular.module('moment')
             viewFormat  = value;
             modelFormat = value;
             setPlaceholder(value);
-            setMinViewModelMoments();
-            setMaxViewModelMoments();
+            setViewModelMomentsForAttr('min');
+            setViewModelMomentsForAttr('max');
             reparseViewValue();
           });
         }
@@ -165,8 +156,8 @@ angular.module('moment')
             if (format === viewFormat) return;
             viewFormat = format;
             setPlaceholder(format);
-            setMinViewModelMoments();
-            setMaxViewModelMoments();
+            setViewModelMomentsForAttr('min');
+            setViewModelMomentsForAttr('max');
             reformatModelValue();
           });
         }
@@ -178,8 +169,8 @@ angular.module('moment')
             format = format || $moment.$defaultModelFormat;
             if (format === modelFormat) return;
             modelFormat = format;
-            setMinViewModelMoments();
-            setMaxViewModelMoments();
+            setViewModelMomentsForAttr('min');
+            setViewModelMomentsForAttr('max');
             reparseViewValue();
           });
         }
@@ -206,22 +197,10 @@ angular.module('moment')
             // Has the min changed?
             if (!moment ^ !moments.min.attr || (moment && moments.min.attr && moment.format('X') !== moments.min.attr.format('X'))) {
               moments.min.attr = moment;
-              setMinViewModelMoments();
+              setViewModelMomentsForAttr('min');
               reparseViewValue();
             }
           };
-
-          scope.$watch(attr.min, function minWatchAction(minAttr) {
-            if (angular.isArray(minAttr) && minAttr.length == 2)
-              moments.min.attr = $moment(minAttr[0], minAttr[1]);
-            else if (minAttr && angular.isString(minAttr))
-              // We're not using modelFormat as this value isn't directly related to this input
-              moments.min.attr = $moment(minAttr, $moment.$defaultModelFormat);
-            else
-              moments.min.attr = null;
-            setMinViewModelMoments();
-            reparseViewValue();
-          }, true);
 
           minWatchAction(scope.$eval(attr.min));
           scope.$watch(attr.min, minWatchAction, true);
@@ -243,21 +222,10 @@ angular.module('moment')
 
             if (!moment ^ !moments.max.attr || (moment && moments.max.attr && moment.format('X') !== moments.max.attr.format('X'))) {
               moments.max.attr = moment;
-              setMaxViewModelMoments();
+              setViewModelMomentsForAttr('max');
               reparseViewValue();
             }
           };
-
-          scope.$watch(attr.max, function maxWatchAction(maxAttr) {
-            if (angular.isArray(maxAttr) && maxAttr.length == 2)
-              moments.max.attr = $moment(maxAttr[0], maxAttr[1]);
-            else if (maxAttr && angular.isString(maxAttr))
-              moments.max.attr = $moment(maxAttr, $moment.$defaultModelFormat);
-            else
-              moments.max.attr = null;
-            setMaxViewModelMoments();
-            reparseViewValue();
-          }, true);
 
           maxWatchAction(scope.$eval(attr.max));
           scope.$watch(attr.max, maxWatchAction, true);
