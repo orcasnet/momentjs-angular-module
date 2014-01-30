@@ -26,7 +26,11 @@ angular.module('moment')
         if (!ctrl)
           return;
         
-        var // Formats may be overridden if attr.(view|model)Format or attr.format is set
+        var // A Moment of the last value passed through the directive's validator. Allows
+            // stepping function to not have to reparse ctrl.$viewValue and potentially fail
+            // if another directive's formatter has changed the view value format
+            momentValue, 
+            // Formats may be overridden if attr.(view|model)Format or attr.format is set
             viewFormat  = $moment.$defaultViewFormat,
             modelFormat = $moment.$defaultModelFormat,
             stepUnit, stepQuantity,
@@ -95,9 +99,10 @@ angular.module('moment')
             strict       = strictModel;
           }
 
-          moment  = $moment(value, inputFormat, strict);
-          isValid = moment.isValid();
-          isEmpty = ctrl.$isEmpty(value);
+          moment      = $moment(value, inputFormat, strict);
+          isValid     = moment.isValid();
+          isEmpty     = ctrl.$isEmpty(value);
+          momentValue = isEmpty ? $moment(null) : moment.clone();
 
           // Date validation
           if (!isEmpty && !isValid) {
