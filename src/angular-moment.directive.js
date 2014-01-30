@@ -91,7 +91,7 @@ angular.module('moment')
         // Date Validation and Formatting
         //////////////////////////////////
 
-        var doAllTheTheThings = function(origin, value) {
+        var parseValidateAndFormatDate = function parseValidateAndFormatDate(origin, value) {
           var moment, isValid, isEmpty, inputFormat, outputFormat, strict;
 
           if (origin == 'view') {
@@ -136,8 +136,8 @@ angular.module('moment')
             return isEmpty ? value : moment.format(outputFormat);
         };
 
-        ctrl.$parsers   .push(angular.bind(undefined, doAllTheTheThings, 'view'));
-        ctrl.$formatters.push(angular.bind(undefined, doAllTheTheThings, 'model'));
+        ctrl.$parsers   .push(angular.bind(undefined, parseValidateAndFormatDate, 'view'));
+        ctrl.$formatters.push(angular.bind(undefined, parseValidateAndFormatDate, 'model'));
 
 
         // Deal with the attributes
