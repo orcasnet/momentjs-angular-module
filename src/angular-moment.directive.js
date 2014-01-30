@@ -8,7 +8,9 @@ angular.module('moment')
 
 .directive('input', ['$moment', '$timeout', 'indexOf', function inputDirective($moment, $timeout, indexOf) {
   // Maybe expose a setting for localization someday...
-  var stepUnits = ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'];
+  var stepUnits   = ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'],
+      strictView  = $moment.$strictView,
+      strictModel = $moment.$strictModel;
 
   return {
     priority: 10,
@@ -89,46 +91,49 @@ angular.module('moment')
         // Date Validation and Formatting
         //////////////////////////////////
 
-
-
         var doAllTheTheThings = function(origin, value) {
           var moment, isValid, isEmpty, inputFormat, outputFormat, strict;
 
           if (origin == 'view') {
             inputFormat  = viewFormat;
             outputFormat = modelFormat;
-            strict       = $moment.strictView;
+            strict       = strictView;
           } else {
             inputFormat  = modelFormat;
             outputFormat = viewFormat;
-            strict       = $moment.strictModel;
+            strict       = strictModel;
           }
 
           moment  = $moment(value, inputFormat, strict);
           isValid = moment.isValid();
           isEmpty = ctrl.$isEmpty(value);
 
+          // Date validation
           if (!isEmpty && !isValid) {
             ctrl.$setValidity('date', false);
+            ctrl.$setValidity('min', true);
+            ctrl.$setValidity('max', true);
             return undefined; }
           else
             ctrl.$setValidity('date', true);
 
+          // Max validation
           if (!isEmpty && isValid && moments.max.attr && moment.isAfter(moments.max[origin]))
             ctrl.$setValidity('max', false);
           else
             ctrl.$setValidity('max', true);
 
-          if (!isEmpty && isValid && moments.min.attr && moment.isAfter(moments.min[origin]))
+          // Min validation
+          if (!isEmpty && isValid && moments.min.attr && moment.isBefore(moments.min[origin]))
             ctrl.$setValidity('min', false);
           else
             ctrl.$setValidity('min', true);
 
+          // Output and formatting
           if (ctrl.$error.min || ctrl.$error.max)
             return undefined;
           else
             return isEmpty ? value : moment.format(outputFormat);
-
         };
 
         var parser    = angular.bind(undefined, doAllTheTheThings, 'view');
