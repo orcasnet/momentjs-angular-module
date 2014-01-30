@@ -63,7 +63,7 @@ angular.module('moment')
             momentMinModel = $moment(momentMin.format(modelFormat), modelFormat);
           }
           else
-            momentMinView  = momentMinModel = null;
+            momentMin = momentMinView  = momentMinModel = null;
         };
 
         var setMaxViewModelMoments = function() {
@@ -72,7 +72,7 @@ angular.module('moment')
             momentMaxModel = $moment(momentMax.format(modelFormat), modelFormat);
           }
           else
-            momentMaxView  = momentMaxModel = null;
+            momentMax = momentMaxView  = momentMaxModel = null;
         };
 
 
