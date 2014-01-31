@@ -26,7 +26,11 @@ angular.module('moment')
         if (!ctrl)
           return;
         
-        var // Formats may be overridden if attr.(view|model)Format or attr.format is set
+        var // A Moment of the last value passed through the directive's validator. Allows
+            // stepping function to not have to reparse ctrl.$viewValue and potentially fail
+            // if another directive's formatter has changed the view value format
+            momentValue, 
+            // Formats may be overridden if attr.(view|model)Format or attr.format is set
             viewFormat  = $moment.$defaultViewFormat,
             modelFormat = $moment.$defaultModelFormat,
             stepUnit, stepQuantity,
@@ -95,9 +99,10 @@ angular.module('moment')
             strict       = strictModel;
           }
 
-          moment  = $moment(value, inputFormat, strict);
-          isValid = moment.isValid();
-          isEmpty = ctrl.$isEmpty(value);
+          moment      = $moment(value, inputFormat, strict);
+          isValid     = moment.isValid();
+          isEmpty     = ctrl.$isEmpty(value);
+          momentValue = isEmpty ? $moment(null) : moment.clone();
 
           // Date validation
           if (!isEmpty && !isValid) {
@@ -269,8 +274,8 @@ angular.module('moment')
           if (event.type == 'keydown' && !/38|40/.test(event.which)) return;
           event.preventDefault();
 
-          var isEmpty    = ctrl.$isEmpty(ctrl.$viewValue),
-              momentView = isEmpty ? $moment() : $moment(ctrl.$viewValue, viewFormat, strictView),
+          var isViewEmpty = ctrl.$isEmpty(ctrl.$viewValue),
+              momentView  = isViewEmpty ? $moment() : $moment(momentValue.format(viewFormat), viewFormat, true),
               wheelDelta, isIncrease, shiftedStepUnit, momentViewStepped, steppedViewValue;
 
           if (!momentView.isValid())
@@ -288,11 +293,11 @@ angular.module('moment')
           else
             shiftedStepUnit = stepUnit;
 
-          if (isEmpty && moments.min.attr)
+          if (isViewEmpty && moments.min.attr)
             // Always step an empty value to the min if specified
             momentViewStepped = moments.min.view.clone();
           else if (isIncrease) {
-            if (isEmpty && !moments.min.attr)
+            if (isViewEmpty && !moments.min.attr)
               // Then use today's date clamped to max 
               momentViewStepped = momentView.max(moments.max.attr ? moments.max.view : undefined);
             else if (moments.min.attr && momentView.isBefore(moments.min.view))
@@ -308,7 +313,7 @@ angular.module('moment')
           }
           // The opposite for decrease
           else {
-            if (isEmpty && !moments.max.attr)
+            if (isViewEmpty && !moments.max.attr)
               momentViewStepped = momentView.min(moments.min.attr ? moments.min.view : undefined);
             else if (moments.max.attr && momentView.isAfter(moments.max.view))
               momentViewStepped = moments.max.view.clone();
