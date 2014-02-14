@@ -306,6 +306,26 @@ describe('$moment', function () {
         expect($scope.date).toBe(modelDate);
       });
 
+      it('should revalidate when min/max and model values change', function() {
+        var input = compile(momentInputMinMax),
+            ctrl  = input.controller('ngModel');
+
+        $scope.$apply("date    = '"+ modelDateHigher +"'");
+        $scope.$apply("dateMin = '"+ modelDate +"'");
+        $scope.$apply("dateMax = '"+ modelDateHighest +"'");
+
+        $scope.$apply(function() {
+          $scope.date    = modelDateLower;
+          $scope.dateMin = modelDateLowest;
+          $scope.dateMax = modelDate;
+        });
+
+        expect(ctrl.$error.min).toBe(false);
+        expect(ctrl.$error.max).toBe(false);
+
+
+      });
+
       // Stepping
 
       it('should set value to today\'s date on up or down arrow keys, or mousewheel', function() {
