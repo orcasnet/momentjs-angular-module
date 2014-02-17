@@ -289,21 +289,27 @@ describe('$moment', function () {
 
         $scope.$apply("dateMin = '"+ modelDateLowest +"'");
         $scope.$apply("dateMax = '"+ modelDateLower +"'");
+
+        $timeout.flush();
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(true);
-        expect($scope.date).toBeUndefined();
+        expect(ctrl.$viewValue).toBeUndefined();
 
         $scope.$apply("dateMin = '"+ modelDateHigher +"'");
         $scope.$apply("dateMax = '"+ modelDateHighest +"'");
+
+        $timeout.flush();
         expect(ctrl.$error.min).toBe(true);
         expect(ctrl.$error.max).toBe(false);
-        expect($scope.date).toBeUndefined();
+        expect(ctrl.$viewValue).toBeUndefined();
 
         $scope.$apply("dateMin = '"+ modelDateLower +"'");
         $scope.$apply("dateMax = '"+ modelDateHigher +"'");
+
+        $timeout.flush();
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(false);
-        expect($scope.date).toBe(modelDate);
+        expect(ctrl.$viewValue).toBe(viewDate);
       });
 
       it('should revalidate when min/max and model values change', function() {
@@ -319,6 +325,8 @@ describe('$moment', function () {
           $scope.dateMin = modelDateLowest;
           $scope.dateMax = modelDate;
         });
+
+        $timeout.flush();
 
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(false);

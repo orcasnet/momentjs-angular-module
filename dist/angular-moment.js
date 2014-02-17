@@ -1,9 +1,7 @@
-/*!
-  Angular Moment.js v0.2.6
-  https://github.com/shaungrady/angular-momentjs
-  (c) 2014 Shaun Grady
-  License: MIT
-*/
+//!  Angular Moment.js v0.2.7
+//!  https://github.com/shaungrady/angular-momentjs
+//!  (c) 2014 Shaun Grady
+//!  License: MIT
 
 'use strict';
 
@@ -200,6 +198,16 @@ angular.module('moment')
           element.attr('placeholder', $moment.$parseFormat(format));
         };
 
+        var reparseOrReformatValue = function() {
+          var hasModelValue = !ctrl.$isEmpty(ctrl.$modelValue),
+              hasViewValue  = !ctrl.$isEmpty(ctrl.$viewValue);
+
+          if (hasModelValue)
+            reformatModelValue();
+          else if (hasViewValue)
+            reparseViewValue();
+        };
+
         var reparseViewValue = function() {
           if (!ctrl.$isEmpty(ctrl.$viewValue))
             ctrl.$setViewValue(ctrl.$viewValue);
@@ -349,7 +357,7 @@ angular.module('moment')
             if (!moment ^ !moments.min.attr || (moment && moments.min.attr && moment.format('X') !== moments.min.attr.format('X'))) {
               moments.min.attr = moment;
               setViewModelMomentsForAttr('min');
-              reparseViewValue();
+              reparseOrReformatValue();
             }
           };
 
@@ -374,7 +382,7 @@ angular.module('moment')
             if (!moment ^ !moments.max.attr || (moment && moments.max.attr && moment.format('X') !== moments.max.attr.format('X'))) {
               moments.max.attr = moment;
               setViewModelMomentsForAttr('max');
-              reparseViewValue();
+              reparseOrReformatValue();
             }
           };
 
