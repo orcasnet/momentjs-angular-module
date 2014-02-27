@@ -1,6 +1,6 @@
 Angular Moment.js Module 
 ================
-**Version 0.1.1** - Jan. 20, 2014
+**Version 0.2.7** - Feb. 17, 2014
 
 An AngularJS module to add Moment.js functionality to Angular. No jQuery necessary!<br>
 
@@ -11,16 +11,16 @@ An AngularJS module to add Moment.js functionality to Angular. No jQuery necessa
 More features are planned, including a suite of filters and a date picker.
 
 ## Requirements
-* [Moment.js] [1] (v2.3.0+)
-* [AngularJS] [2] (v1.2.0+)
+* [Moment.js] [1] v2.3.0+ (v2.5.1+ recommended)
+* [AngularJS] [2] v1.2.0+
 
 [1]: http://momentjs.com/
 [2]: http://angularjs.org/
 
 ## Installing
-After including the module script on your page, declare `angular-momentjs` as a dependency of your app:
+After including the module script on your page, declare `moment` as a dependency of your app:
 ```
-angular.module('myApp', ['angular-momentjs']);
+angular.module('myApp', ['moment']);
 ```
 
 ## Usage
@@ -29,11 +29,13 @@ angular.module('myApp', ['angular-momentjs']);
 Used to configure defaults across the module.
 #### Methods
 
-* **defaultModelFormat(** {string} **)**<br> Set the default Moment format to be used for the model value. Defaults to `moment.defaultFormat`, which is ISO8601 out-of-the-box (`YYYY-MM-DDTHH:mm:ssZ`).
+* **defaultModelFormat(**`string`**)**<br> Set the default Moment format to be used for the model value. Defaults to `moment.defaultFormat`, which is ISO8601 out-of-the-box (`YYYY-MM-DDTHH:mm:ssZ`).
 
-* **defaultViewFormat(** {string} **)**<br> Set the default Moment format to be used for the view value. Defaults to `L`, a locale dependent format set to `MM/DD/YYYY` for `moment.lang('en')`.
+* **defaultViewFormat(**`string`**)**<br> Set the default Moment format to be used for the view value. Defaults to `L`, a locale dependent format set to `MM/DD/YYYY` for `moment.lang('en')`.
 
-* **strict(** {boolean} **)**<br> Set whether dates should be parsed strictly. Strict parsing requires that the format and input match exactly. Defaults to `true`.
+* **strictModel(**`boolean`**)**<br> Set whether model date values should be parsed strictly or not. Strict parsing requires that the format and input match exactly. Defaults to `true`.
+
+* **strictView(**`boolean`**)**<br> Set whether view date values should be parsed strictly. Strict parsing requires that the format and input match exactly. Defaults to `true`.
  
 
 ### Directive
@@ -71,7 +73,19 @@ npm install
 bower install
 ```
 
-To run Karma tests:
+### Task Running
+
+To develop:
 ```
-grunt
+gulp develop
+```
+
+To build:
+```
+gulp build
+```
+
+To test:
+```
+gulp test
 ```

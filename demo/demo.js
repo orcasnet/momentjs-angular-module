@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('demoApp', ['angular-momentjs'])
+angular.module('demoApp', ['moment'])
 .config(['$momentProvider', function($momentProvider) {
 
 }])

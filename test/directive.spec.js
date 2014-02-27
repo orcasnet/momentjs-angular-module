@@ -21,6 +21,10 @@ describe('$moment', function () {
     var viewDate  = '01/31/1986',
         modelDate = '507542400';
 
+    var todayModel     = moment().format('X'),
+        tomorrowModel  = moment().add(1, 'day').format('X'),
+        yesterdayModel = moment().subtract(1, 'day').format('X');
+
     var modelDateLowest  = '307542400',
         modelDateLower   = '407542400',
         modelDateHigher  = '607542400',
@@ -35,17 +39,19 @@ describe('$moment', function () {
     var wheelUpEvent   = ['mousewheel', { type:'wheel', wheelDelta:120, which:1 }],
         wheelDownEvent = ['mousewheel', { type:'wheel', wheelDelta:-120, which:1 }],
         upKeyEvent     = ['keydown', { type:'keydown', which:38 }],
-        downKeyEvent   = ['keydown', { type:'keydown', which:40 }],
-        plusKeyEvent   = ['keydown', { type:'keydown', which:107 }],
-        minusKeyEvent  = ['keydown', { type:'keydown', which:109 }];
+        downKeyEvent   = ['keydown', { type:'keydown', which:40 }];
 
-    beforeEach(angular.mock.module('angular-momentjs'));
+    beforeEach(angular.mock.module('moment'));
     beforeEach(inject(function (_$moment_, _$rootScope_, _$compile_, _$timeout_) {
       $moment  = _$moment_;
       $scope   = _$rootScope_.$new();
       $compile = _$compile_;
       $timeout = _$timeout_;
-      compile  = function(markup) { return $compile(markup)($scope); };
+      compile  = function(markup) {
+        var elem = $compile(markup)($scope);
+        $scope.$digest();
+        return elem;
+      };
 
       consoleLog = console.log || angular.noop;
     }));
@@ -112,12 +118,11 @@ describe('$moment', function () {
       it('should reformat view/model based on view- and model-format attrs', function() {
         var input = compile(momentInputViewModelFormat),
             ctrl  = input.controller('ngModel');
-        $scope.$apply("date = '"+ viewDate +"'");
 
-        // Flip default view and model formats so model becomes valid
+        // Flip default view and model formats
         $scope.$apply("dateModelFormat = 'L'");
         $scope.$apply("dateViewFormat  = 'X'");
-        $timeout.flush();
+        $scope.$apply("date = '"+ viewDate +"'");
         expect($scope.date).toBe(viewDate);
         expect(input.val()).toBe(modelDate);
 
@@ -131,6 +136,16 @@ describe('$moment', function () {
         expect($scope.date).toBe(modelDate);
       });
 
+      it('should format the model if initialized after model is defined', function() {
+        $scope.$apply("dateModelFormat = 'L'");
+        $scope.$apply("dateViewFormat  = 'X'");
+        $scope.$apply("date = '"+ viewDate +"'");
+
+        var input = compile(momentInputViewModelFormat);
+
+        expect($scope.date).toBe(viewDate);
+        expect(input.val()).toBe(modelDate);
+      });
 
       // Model-side min/max tests
 
@@ -159,6 +174,21 @@ describe('$moment', function () {
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(false);
         expect(input.val()).toBe(viewDate);
+      });
+
+      it('should validate the model against min/max if compiled after model is set', function() {
+
+        $scope.$apply("date = '"+ modelDateHighest +"'");
+        $scope.$apply("dateMin = '"+ modelDateLower +"'");
+        $scope.$apply("dateMax = '"+ modelDateHigher +"'");
+
+        var input = compile(momentInputMinMax),
+            ctrl  = input.controller('ngModel');
+            
+        expect(ctrl.$error.min).toBe(false);
+        expect(ctrl.$error.max).toBe(true);
+        expect(input.val()).toBe('');
+        expect($scope.date).toBe(modelDateHighest);
       });
 
       it('should validate the model against min and max array values', function() {
@@ -227,6 +257,26 @@ describe('$moment', function () {
         expect($scope.date).toBeUndefined();
       });
 
+      it('should accept "today" keyword for min and max attrs', function() {
+        var input = compile(momentInputMinMax),
+            ctrl  = input.controller('ngModel');
+
+        $scope.$apply("date    = '"+ todayModel +"'");
+        $scope.$apply("dateMin = 'today'");
+        $scope.$apply("dateMax = 'today'");
+
+        expect(ctrl.$error.min).toBe(false);
+        expect(ctrl.$error.max).toBe(false);
+
+        $scope.$apply("date = '"+ yesterdayModel +"'");
+        expect(ctrl.$error.min).toBe(true);
+        expect(ctrl.$error.max).toBe(false);
+
+        $scope.$apply("date = '"+ tomorrowModel +"'");
+        expect(ctrl.$error.min).toBe(false);
+        expect(ctrl.$error.max).toBe(true);
+      });
+
       // End view-size min/max tests
 
       it('should revalidate when min/max values change', function() {
@@ -239,26 +289,54 @@ describe('$moment', function () {
 
         $scope.$apply("dateMin = '"+ modelDateLowest +"'");
         $scope.$apply("dateMax = '"+ modelDateLower +"'");
+
+        $timeout.flush();
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(true);
-        expect($scope.date).toBeUndefined();
+        expect(ctrl.$viewValue).toBeUndefined();
 
         $scope.$apply("dateMin = '"+ modelDateHigher +"'");
         $scope.$apply("dateMax = '"+ modelDateHighest +"'");
+
+        $timeout.flush();
         expect(ctrl.$error.min).toBe(true);
         expect(ctrl.$error.max).toBe(false);
-        expect($scope.date).toBeUndefined();
+        expect(ctrl.$viewValue).toBeUndefined();
 
         $scope.$apply("dateMin = '"+ modelDateLower +"'");
         $scope.$apply("dateMax = '"+ modelDateHigher +"'");
+
+        $timeout.flush();
         expect(ctrl.$error.min).toBe(false);
         expect(ctrl.$error.max).toBe(false);
-        expect($scope.date).toBe(modelDate);
+        expect(ctrl.$viewValue).toBe(viewDate);
+      });
+
+      it('should revalidate when min/max and model values change', function() {
+        var input = compile(momentInputMinMax),
+            ctrl  = input.controller('ngModel');
+
+        $scope.$apply("date    = '"+ modelDateHigher +"'");
+        $scope.$apply("dateMin = '"+ modelDate +"'");
+        $scope.$apply("dateMax = '"+ modelDateHighest +"'");
+
+        $scope.$apply(function() {
+          $scope.date    = modelDateLower;
+          $scope.dateMin = modelDateLowest;
+          $scope.dateMax = modelDate;
+        });
+
+        $timeout.flush();
+
+        expect(ctrl.$error.min).toBe(false);
+        expect(ctrl.$error.max).toBe(false);
+
+
       });
 
       // Stepping
 
-      it('should set value to today\'s date on up, down, plus, or minus keys, or mousewheel', function() {
+      it('should set value to today\'s date on up or down arrow keys, or mousewheel', function() {
         var input = compile(momentInput),
             today = $moment().format('L');
 
@@ -276,15 +354,6 @@ describe('$moment', function () {
         $scope.$apply("date = undefined");
         input.triggerHandler.apply(input, downKeyEvent);
         expect(input.val()).toBe(today);
-
-        $scope.$apply("date = undefined");
-        input.triggerHandler.apply(input, plusKeyEvent);
-        expect(input.val()).toBe(today);
-
-        $scope.$apply("date = undefined");
-        input.triggerHandler.apply(input, minusKeyEvent);
-        expect(input.val()).toBe(today);
-
       });
 
       it('should step by one day with a value', function() {
@@ -299,27 +368,27 @@ describe('$moment', function () {
         expect(ctrl.$viewValue).toBe(tomorrow);
 
         input.triggerHandler.apply(input, downKeyEvent);
-        input.triggerHandler.apply(input, minusKeyEvent);
+        input.triggerHandler.apply(input, downKeyEvent);
         expect(ctrl.$viewValue).toBe(yesterday);
       });
 
       it('should step by one month if shift key is pressed', function() {
         var input     = compile(momentInput),
             ctrl                = input.controller('ngModel'),
-            today               = $moment().format('L'),
-            nextMonth           = $moment().add(1, 'month').format('L'),
+            monthStart          = $moment().startOf('month').format('L'),
+            nextMonth           = $moment().startOf('month').add(1, 'month').format('L'),
             wheelUpShiftEvent   = angular.copy(wheelUpEvent),
             wheelDownShiftEvent = angular.copy(wheelDownEvent);
 
         wheelUpShiftEvent[1].shiftKey   = true;
         wheelDownShiftEvent[1].shiftKey = true;
 
-        ctrl.$setViewValue(today);
+        ctrl.$setViewValue(monthStart);
         input.triggerHandler.apply(input, wheelUpShiftEvent);
         expect(ctrl.$viewValue).toBe(nextMonth);
 
         input.triggerHandler.apply(input, wheelDownShiftEvent);
-        expect(ctrl.$viewValue).toBe(today);
+        expect(ctrl.$viewValue).toBe(monthStart);
       });
 
       it('should not step if input view value is invalid', function() {
@@ -350,11 +419,11 @@ describe('$moment', function () {
         $scope.$apply("dateMin = '"+ modelDateLower +"'");
         $scope.$apply("dateMax = '"+ modelDateHigher +"'");
 
-        input.triggerHandler.apply(input, minusKeyEvent);
+        input.triggerHandler.apply(input, downKeyEvent);
         expect(ctrl.$viewValue).toBe(viewDateLower);
 
         $scope.$apply("date = undefined");
-        input.triggerHandler.apply(input, plusKeyEvent);
+        input.triggerHandler.apply(input, upKeyEvent);
         expect(ctrl.$viewValue).toBe(viewDateLower);
       });
 
@@ -392,22 +461,19 @@ describe('$moment', function () {
 
       it('should respect the step attribute and ignore pluralization of unit', function() {
         var input = compile(momentInputStep),
-            ctrl                = input.controller('ngModel'),
-            today               = $moment().format('L'),
-            nextMonth           = $moment().add(1, 'month').format('L');
+            ctrl  = input.controller('ngModel'),
+            jan1  = $moment('01/01/2000').format('L'),
+            feb1  = $moment('01/01/2000').add(1, 'month').format('L');
+
+        ctrl.$setViewValue(jan1);
 
         $scope.$apply("dateStep = '1 month'");
-
         input.triggerHandler.apply(input, upKeyEvent);
-        expect(ctrl.$viewValue).toBe(today);
+        expect(ctrl.$viewValue).toBe(feb1);
 
         $scope.$apply("dateStep = '1 months'");
-
-        input.triggerHandler.apply(input, upKeyEvent);
-        expect(ctrl.$viewValue).toBe(nextMonth);
-
         input.triggerHandler.apply(input, downKeyEvent);
-        expect(ctrl.$viewValue).toBe(today);
+        expect(ctrl.$viewValue).toBe(jan1);
       });
 
       it('should fall back to default stepping if step attribute is invalid', function() {

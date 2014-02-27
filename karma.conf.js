@@ -18,7 +18,7 @@ module.exports = function(config) {
       'bower_components/angular/angular.js',
       'bower_components/angular-mocks/angular-mocks.js',
       'bower_components/momentjs/moment.js',
-      'src/angular-moment.js',
+      'dist/angular-moment.js',
       'test/*.spec.js'
     ],
 
@@ -44,6 +44,7 @@ module.exports = function(config) {
     // - PhantomJS
     // - IE (only Windows)
     browsers: ['Chrome', 'Safari', 'Firefox', 'PhantomJS'],
+    // browsers: ['Firefox'],
 
     // Continuous Integration mode
     // if true, it capture browsers, run tests and exit
