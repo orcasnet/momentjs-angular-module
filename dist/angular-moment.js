@@ -1,4 +1,4 @@
-//!  Angular Moment.js v0.2.7
+//!  Angular Moment.js v0.2.8
 //!  https://github.com/shaungrady/angular-momentjs
 //!  (c) 2014 Shaun Grady
 //!  License: MIT
@@ -162,18 +162,20 @@ angular.module('moment')
       if (tAttr.type !== 'date' && tAttr.type !== 'moment')
         return angular.noop;
       return function inputPostLink(scope, element, attr, ctrl) {
-        // All the functionality of this directive requires ngModelCtrl
+        // All the functionality of this directive requires ngModelCtrl.
         if (!ctrl)
           return;
         
         var // A Moment of the last value passed through the directive's validator. Allows
             // stepping function to not have to reparse ctrl.$viewValue and potentially fail
-            // if another directive's formatter has changed the view value format
-            momentValue, 
-            // Formats may be overridden if attr.(view|model)Format or attr.format is set
+            // if another directive's formatter has changed the view value format.
+            momentValue,
+            // Formats may be overridden if attr.(view|model)Format or attr.format is set.
             viewFormat  = $moment.$defaultViewFormat,
             modelFormat = $moment.$defaultModelFormat,
             stepUnit, stepQuantity,
+            // We track focus state to prevent stepping if elem is blurred.
+            hasFocus = false,
             // Min/max must be reparsed using view/model formats to account for differences
             // in date specificity. E.g., if min is '01-30-2000' and viewFormat is 'MM-YYYY'
             // and the model value is '01-2000'. 
@@ -290,8 +292,8 @@ angular.module('moment')
         ctrl.$formatters.push(angular.bind(undefined, parseValidateAndFormatDate, 'model'));
 
 
-        // Deal with the attributes
-        ////////////////////////////
+        // Process format, viewFormat, modelFormat attrs
+        /////////////////////////////////////////////////
 
         if (attr.format && (!attr.viewFormat || !attr.modelFormat)) {
           viewFormat  = scope.$eval(attr.format) || viewFormat;
@@ -417,11 +419,14 @@ angular.module('moment')
 
         var inputStepHandler = function(event, eventData) {
           // Allow for passing custom event object in tests (so Kosher)
-          if (!event.type && eventData && eventData.type)
+          // TODO: Use gulp-remove-lines to strip this from build
+          if (!event.type && eventData && eventData.type) {
             angular.extend(event, eventData);
+            hasFocus = true;
+          }
 
           //                               Up|Dn
-          if (event.type == 'keydown' && !/38|40/.test(event.which)) return;
+          if (!hasFocus || (event.type == 'keydown' && !/38|40/.test(event.which))) return;
           event.preventDefault();
 
           var isViewEmpty = ctrl.$isEmpty(ctrl.$viewValue),
@@ -484,6 +489,8 @@ angular.module('moment')
 
         element.on('mousewheel keydown', inputStepHandler);
 
+        element.on('focus', function(e) { hasFocus = true; });
+        element.on('blur',  function(e) { hasFocus = false; });
       };
     }
   };

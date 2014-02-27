@@ -1,4 +1,4 @@
-//!  Angular Moment.js v0.2.7
+//!  Angular Moment.js v0.2.8
 //!  https://github.com/shaungrady/angular-momentjs
 //!  (c) 2014 Shaun Grady
 //!  License: MIT
