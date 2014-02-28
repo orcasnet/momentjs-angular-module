@@ -1,5 +1,6 @@
 var gulp   = require('gulp'),
     gutil  = require('gulp-util'),
+    clean  = require('gulp-clean'),
     concat = require('gulp-concat'),
     uglify = require('gulp-uglify'),
     rename = require('gulp-rename'),
@@ -41,6 +42,10 @@ gulp.task('test', karmaTest);
 
 function karmaTest(action) {
   action = action || 'run';
+
+  gulp.src('coverage', { read: false })
+    .pipe(clean());
+
   return gulp.src('./defined-in-karma.conf.js')
     .pipe(karma({
       configFile: 'karma.conf.js',
