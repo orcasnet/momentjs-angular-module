@@ -1,0 +1,24 @@
+<div class="datepick">
+  <header class="datepick-header">
+    <b ng-bind="displayMoment.format('MMM')"></b>
+    <span ng-bind="displayMoment.format('YYYY')"></span>
+    &nbsp;
+    &nbsp;
+    &nbsp;
+    &nbsp;
+    <span ng-click="displayMoment.subtract(1, 'year')">&lt;&lt;</span>
+    &nbsp;
+    <span ng-click="displayMoment.subtract(1, 'month')">&lt;</span>
+    &nbsp;
+    &nbsp;
+    <span ng-click="displayMoment.add(1, 'month')">&gt;</span>
+    &nbsp;
+    <span ng-click="displayMoment.add(1, 'year')">&gt;&gt;</span>
+  </header>
+
+  <div ng-repeat="moment in weekMoments" ng-bind="moment.format('dd')" class="datepick-cell datepick-dayname"></div
+ ><div ng-repeat="moment in lastMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="{ today:moment.isSame(today, 'day'), current:moment.isSame(date, 'day') }" class="datepick-cell datepick-day datepick-lastmonth"></div
+ ><div ng-repeat="moment in thisMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="{ today:moment.isSame(today, 'day'), current:moment.isSame(date, 'day') }" class="datepick-cell datepick-day datepick-thismonth"></div
+ ><div ng-repeat="moment in nextMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="{ today:moment.isSame(today, 'day'), current:moment.isSame(date, 'day') }" class="datepick-cell datepick-day datepick-nextmonth"></div>
+
+</div>

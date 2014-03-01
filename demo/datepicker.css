@@ -1,0 +1,68 @@
+.datepick {
+  display: inline-block;
+  border: 1px solid #ccc;
+  font-size: 12px;
+
+  width: 280px;
+  margin-left: 100px
+}
+
+.datepick-header {
+  background: #fafafa;
+  border-bottom: 1px solid #ccc;
+  color: #666;
+  font-size: 15px;
+  line-height: 39px;
+  padding-left: 10px;
+}
+
+.datepick-cell {
+  border-bottom: 1px solid #e8e8e8;
+  cursor: pointer;
+  display: inline-block;
+  width: 30px;
+  padding-left: 10px;
+  line-height: 39px;
+}
+
+.datepick-day:hover {
+  background: #ecf1f5;
+  box-shadow: 0 0 0px 1px #fff inset;
+  color: #666;
+}
+
+.datepick-dayname {
+  background: #eee;
+  font-weight: bold;
+  border-bottom: 1px solid #ccc;
+}
+
+.datepick-lastmonth,
+.datepick-nextmonth {
+  background: #f7f7f7;
+  box-shadow: 0 2px 4px -3px #555 inset;
+  color: #bbb;
+}
+
+.datepick-lastmonth +
+.datepick-thismonth,
+
+.datepick-thismonth +
+.datepick-nextmonth {
+  border-left: 1px solid #e8e8e8;
+  margin-left: -1px;
+}
+
+.datepick-cell.today {
+  background: #999;
+  color: #fff;
+}
+
+.datepick-cell.current {
+  background: #cee4f7;
+  box-shadow: 0 0 0px 1px #fff inset;
+  color: #4e677c;
+}
+
+
+/* #CCEDF7 */
