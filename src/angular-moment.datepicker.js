@@ -17,6 +17,17 @@ angular.module('moment')
     link: function(scope, element, attr) {
 
       scope.weekMoments = [];
+      
+      scope.getDateCellClassNames = function(moment) {
+        // isWeekend may not be accurate for all locales
+        var isWeekend = /0|7/.test(moment.isoWeekday());
+        return {
+          today:   moment.isSame($moment(),  'day'),
+          current: moment.isSame(scope.date, 'day'),
+          weekend: isWeekend,
+          weekday: !isWeekend
+        };
+      };
 
       var i = 7;
       while (i--) {

@@ -54,8 +54,8 @@
 }
 
 .datepick-cell.today {
-  background: #999;
-  color: #fff;
+  background: #eee;
+  /*color: #fff;*/
 }
 
 .datepick-cell.current {
