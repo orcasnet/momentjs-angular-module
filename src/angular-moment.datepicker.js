@@ -6,6 +6,48 @@
 
 angular.module('moment')
 
+.directive('momentPicker', ['$moment', '$compile', 'getOffset', function inputDirective($moment, $compile, getOffset) {
+  var defaultStyleAttr = 'style="position:absolute"';
+
+  return {
+    restrict: 'A',
+    require: '?ngModel',
+    scope: true,
+    link: function(scope, element, attr, ctrl) {
+      if (!ctrl)
+        return;
+
+      var pickerElement = $compile('<div moment-datepicker="'+ attr.ngModel +'" '+ defaultStyleAttr +' ng-show="isShowingMomentPicker"></div>')(scope);
+      element.after(pickerElement);
+
+      element.on('focus click', function(event) {
+        var offset = getOffset(element[0]);
+
+        pickerElement.css({
+          left: offset.left + 'px',
+          top: offset.bottom + 'px'
+        });
+
+        scope.$apply(function(scope) {
+          scope.isShowingMomentPicker = true;
+        });
+      });
+
+      pickerElement.on('mousedown', function(event) {
+        event.preventDefault();
+      });
+
+      element.on('blur', function(event) {
+        scope.$apply(function(scope) {
+          scope.isShowingMomentPicker = false;
+        });
+      });
+
+    }
+  }
+}])
+
+
 .directive('momentDatepicker', ['$moment', function inputDirective($moment) {
   var weekStartDay = $moment().startOf('week').format('d'),
       weekEndDay   = $moment().endOf('week')  .format('d');
@@ -13,7 +55,7 @@ angular.module('moment')
   return {
     restrict: 'A',
     templateUrl: 'datepicker.template.html',
-    scope: { date:'=momentDatepicker' },
+    scope: { date:'=momentDatepicker', ngShow:'=' },
     link: function(scope, element, attr) {
 
       scope.weekMoments = [];

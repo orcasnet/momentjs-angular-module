@@ -1,10 +1,10 @@
 .datepick {
+  background: #fff;
   display: inline-block;
   border: 1px solid #ccc;
   font-size: 12px;
 
   width: 280px;
-  margin-left: 100px
 }
 
 .datepick-header {
