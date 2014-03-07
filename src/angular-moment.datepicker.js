@@ -7,44 +7,67 @@
 angular.module('moment')
 
 .directive('momentPicker', ['$moment', '$compile', 'getOffset', function inputDirective($moment, $compile, getOffset) {
-  var defaultStyleAttr = 'style="position:absolute"';
+  var defaultStyleAttr = 'style="position:absolute"',
+      copiedAttrs      = 'format modelFormat min max'.split(' ');
 
   return {
     restrict: 'A',
     require: '?ngModel',
-    scope: true,
     link: function(scope, element, attr, ctrl) {
       if (!ctrl)
         return;
 
-      var pickerElement = $compile('<div moment-datepicker="'+ attr.ngModel +'" '+ defaultStyleAttr +' ng-show="isShowingMomentPicker"></div>')(scope);
+      var pickerAttrs = [ defaultStyleAttr ];
+
+      // Copy relevent attrs from input to picker
+      angular.forEach(copiedAttrs, function(name) {
+        if (attr[name])
+          pickerAttrs.push(name +'="'+ attr[name] +'"');
+      });
+
+      // 'ngShow' state tracking
+      if (!scope.$momentPicker)
+        scope.$momentPicker = {};
+      scope.$momentPicker[attr.ngModel] = false;
+      pickerAttrs.push('ng-show="$momentPicker[\''+ attr.ngModel +'\']"');
+
+      // Compile/inject/bind events to picker
+      var pickerElement = $compile('<div moment-datepicker="'+ attr.ngModel +'" '+ pickerAttrs.join(' ') +'></div>')(scope);
       element.after(pickerElement);
 
+      pickerElement.on('mousedown', function(event) {
+        event.preventDefault();
+      });
+
+      // Input event binding
       element.on('focus click', function(event) {
         var offset = getOffset(element[0]);
-
+  
         pickerElement.css({
           left: offset.left + 'px',
           top: offset.bottom + 'px'
         });
 
         scope.$apply(function(scope) {
-          scope.isShowingMomentPicker = true;
+          scope.$momentPicker[attr.ngModel] = true;
         });
       });
 
-      pickerElement.on('mousedown', function(event) {
-        event.preventDefault();
-      });
-
-      element.on('blur', function(event) {
+      element.on('blur keydown', function(event) {
+        if (event.type == 'keydown' && event.which !== 27)
+          return;
         scope.$apply(function(scope) {
-          scope.isShowingMomentPicker = false;
+          scope.$momentPicker[attr.ngModel] = false;
         });
+      });
+
+      // Destruction cleanup
+      scope.$on('$destroy', function() {
+        pickerElement.off().remove();
       });
 
     }
-  }
+  };
 }])
 
 
@@ -55,43 +78,115 @@ angular.module('moment')
   return {
     restrict: 'A',
     templateUrl: 'datepicker.template.html',
-    scope: { date:'=momentDatepicker', ngShow:'=' },
+    scope: {
+      dateModel:   '=momentDatepicker',
+      format:      '=?',
+      modelFormat: '=?',
+      min:         '=?',
+      max:         '=?',
+      ngShow:      '=?'
+    },
     link: function(scope, element, attr) {
+      var format, moments = {};
 
-      scope.weekMoments = [];
+
+      // Initialize
+      //////////////
+
+      if (!attr.ngShow)
+        scope.ngShow = true;
+
+      scope.displayMoment = $moment();
+      scope.weekMoments   = [];
+
+      var i = 7;
+      while (i--)
+        scope.weekMoments.unshift($moment().startOf('week').add(i, 'day'));
+
+
+      // Process Min/Max Attrs
+      /////////////////////////
+
+      var setMomentFromAttr = function(attrName, attrValue) {
+        var moment;
+
+        // Parse
+        if (angular.isArray(attrValue) && attrValue.length == 2)
+          moment = $moment(attrValue[0], attrValue[1], true);
+        else if (attrValue && angular.isString(attrValue)) {
+          if (attrValue == 'today')
+            moment = $moment();
+          else
+            moment = $moment(attrValue, $moment.$defaultModelFormat, $moment.$strictModel);
+        }
+        else
+          moment = $moment(null);
+
+        // Set
+        moments[attrName] = moment.isValid() ? moment : null;
+      };
+
+      scope.$watch('min', function(minValue) {
+        setMomentFromAttr('min', minValue);
+      }, true);
+
+      scope.$watch('max', function(maxValue) {
+        setMomentFromAttr('max', maxValue);
+      }, true);
+
+
+      // View helpers
+      ////////////////
       
       scope.getDateCellClassNames = function(moment) {
         // isWeekend may not be accurate for all locales
-        var isWeekend = /0|7/.test(moment.isoWeekday());
+        var isWeekend = /0|7/.test(moment.isoWeekday()),
+            isInvalid = false;
+
+        if (moments.min) {
+          isInvalid = moment.isBefore(moments.min, 'day');
+        }
+        if (moments.max && !isInvalid) {
+          isInvalid = moment.isAfter(moments.max, 'day');
+        }
+
         return {
           today:   moment.isSame($moment(),  'day'),
-          current: moment.isSame(scope.date, 'day'),
+          current: moment.isSame(scope.dateMoment, 'day'),
           weekend: isWeekend,
-          weekday: !isWeekend
+          weekday: !isWeekend,
+          invalid: isInvalid
         };
       };
 
-      var i = 7;
-      while (i--) {
-        scope.weekMoments.unshift($moment().startOf('week').add(i, 'day'));
-      }
+      scope.setDateTo = function(moment) {
+        if (moments.min && moment.isBefore(moments.min))
+          return;
+        if (moments.max && moment.isAfter(moments.max))
+          return;
+        scope.dateModel = moment.format($moment.$defaultModelFormat);
+      };
 
-      scope.$watch('date', function(date) {
-        var moment = $moment(date, $moment.$defaultModelFormat, $moment.$strictModel);
-        if (date && moment.isValid())
-          scope.moment = moment.clone();
-        else
-          scope.moment = $moment();
-        scope.displayMoment = scope.moment.clone();
+
+      // Core things
+      ///////////////
+
+      scope.$watch('dateModel', function(dateModel, oldDateModel) {
+        var moment = $moment(dateModel, $moment.$defaultModelFormat, $moment.$strictModel);
+
+        if (dateModel && moment.isValid()) {
+          scope.dateMoment    = moment.clone();
+          scope.displayMoment = moment.clone();
+        }
+        else {
+          scope.dateMoment    = $moment('');
+          scope.displayMoment = $moment();
+        }        
       });
 
       scope.$watch(function() { return scope.displayMoment.format('M/YYYY'); }, function(moment, oldMoment) {
         rebuild();
       });
-
-      scope.setDateTo = function(moment) {
-        scope.date = moment.format($moment.$defaultModelFormat);
-      };
 
       function rebuild() {
         scope.today = $moment();
@@ -105,7 +200,7 @@ angular.module('moment')
             thisMonth       = scope.displayMoment.format('M');
 
         while (lastMonthMoment.format('d') !== weekStartDay) {
-          scope.lastMonthMoments.push(lastMonthMoment.subtract(1, 'day').clone());
+          scope.lastMonthMoments.unshift(lastMonthMoment.subtract(1, 'day').clone());
         }
 
         while (thisMonthMoment.format('M') === thisMonth) {
@@ -115,15 +210,7 @@ angular.module('moment')
 
         while (nextMonthMoment.format('d') !== weekEndDay)
           scope.nextMonthMoments.push(nextMonthMoment.add(1, 'day').clone());
-
-
-
-
-
-
       }
-
-
 
 
 
