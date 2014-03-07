@@ -87,11 +87,12 @@ angular.module('moment')
       ngShow:      '=?'
     },
     link: function(scope, element, attr) {
-      var format, moments = {};
-
+      var format  = $moment.$defaultModelFormat,
+          moments = {};
 
       // Initialize
       //////////////
+      scope.hasNgShowAttr = !!attr.ngShow;
 
       if (!attr.ngShow)
         scope.ngShow = true;
@@ -103,6 +104,25 @@ angular.module('moment')
       while (i--)
         scope.weekMoments.unshift($moment().startOf('week').add(i, 'day'));
 
+      // Process Format or modelFormat Attr
+      //////////////////////////////////////
+
+      var setFormat = function(newFormat) {
+        if (angular.equals(format, newFormat))
+          return;
+
+        format = newFormat || $moment.$defaultModelFormat;
+        parseDateModel(scope.dateModel);
+      };
+
+      if (attr.format && !attr.modelFormat) {
+        format = scope.format || $moment.$defaultModelFormat;
+        scope.$watch('format', setFormat);
+      }
+      else if (attr.modelFormat) {
+        format = scope.modelFormat || $moment.$defaultModelFormat;
+        scope.$watch('modelFormat', setFormat);
+      }
 
       // Process Min/Max Attrs
       /////////////////////////
@@ -126,13 +146,17 @@ angular.module('moment')
         moments[attrName] = moment.isValid() ? moment : null;
       };
 
-      scope.$watch('min', function(minValue) {
-        setMomentFromAttr('min', minValue);
-      }, true);
+      if (attr.min) {
+        scope.$watch('min', function(minValue) {
+          setMomentFromAttr('min', minValue);
+        }, true);
+      }
 
-      scope.$watch('max', function(maxValue) {
-        setMomentFromAttr('max', maxValue);
-      }, true);
+      if (attr.max) {
+        scope.$watch('max', function(maxValue) {
+          setMomentFromAttr('max', maxValue);
+        }, true);
+      }
 
 
       // View helpers
@@ -171,8 +195,8 @@ angular.module('moment')
       // Core things
       ///////////////
 
-      scope.$watch('dateModel', function(dateModel, oldDateModel) {
-        var moment = $moment(dateModel, $moment.$defaultModelFormat, $moment.$strictModel);
+      var parseDateModel = function(dateModel) {
+        var moment = $moment(dateModel, format, $moment.$strictModel);
 
         if (dateModel && moment.isValid()) {
           scope.dateMoment    = moment.clone();
@@ -181,8 +205,10 @@ angular.module('moment')
         else {
           scope.dateMoment    = $moment('');
           scope.displayMoment = $moment();
-        }        
-      });
+        } 
+      };
+
+      scope.$watch('dateModel', parseDateModel);
 
       scope.$watch(function() { return scope.displayMoment.format('M/YYYY'); }, function(moment, oldMoment) {
         rebuild();
