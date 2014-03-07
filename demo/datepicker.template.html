@@ -16,15 +16,17 @@
     <span ng-click="displayMoment.add(1, 'year')">&gt;&gt;</span>
     &nbsp;
     &nbsp;
-    <a ng-show="ngShow" href="" ng-click="ngShow = false">X</a>
-
-
-
+    <a ng-show="hasNgShowAttr &amp;&amp; ngShow" href="" ng-click="ngShow = false">X</a>
   </header>
 
-  <div ng-repeat="moment in weekMoments" ng-bind="moment.format('dd')" class="datepick-cell datepick-dayname"></div
- ><div ng-repeat="moment in lastMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="getDateCellClassNames(moment)" class="datepick-cell datepick-day datepick-lastmonth"></div
- ><div ng-repeat="moment in thisMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="getDateCellClassNames(moment)" class="datepick-cell datepick-day datepick-thismonth"></div
- ><div ng-repeat="moment in nextMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="getDateCellClassNames(moment)" class="datepick-cell datepick-day datepick-nextmonth"></div>
+
+
+  <div ng-if="ngShow">
+    <div ng-repeat="moment in weekMoments" ng-bind="moment.format('dd')" class="datepick-cell datepick-dayname"></div
+    ><div ng-repeat="moment in lastMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="getDateCellClassNames(moment)" class="datepick-cell datepick-day datepick-lastmonth"></div
+    ><div ng-repeat="moment in thisMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="getDateCellClassNames(moment)" class="datepick-cell datepick-day datepick-thismonth"></div
+    ><div ng-repeat="moment in nextMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="getDateCellClassNames(moment)" class="datepick-cell datepick-day datepick-nextmonth"></div>
+  </div>
+  
 
 </div>

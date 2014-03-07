@@ -64,5 +64,10 @@
   color: #4e677c;
 }
 
+.datepick-cell.invalid {
+  background: #999;
+  color: #ccc;
+}
+
 
 /* #CCEDF7 */
