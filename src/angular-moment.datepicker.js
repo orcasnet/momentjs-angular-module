@@ -71,13 +71,21 @@ angular.module('moment')
 }])
 
 
-.directive('momentDatepicker', ['$moment', function inputDirective($moment) {
+.directive('momentDatepicker', ['$moment', '$log', function inputDirective($moment, $log) {
   var weekStartDay = $moment().startOf('week').format('d'),
       weekEndDay   = $moment().endOf('week')  .format('d');
 
   return {
     restrict: 'A',
-    templateUrl: 'datepicker.template.html',
+    templateUrl: function(tElement, tAttrs) {
+      console.log(this);
+      var templateName = tAttrs.pickerTemplate || 'default',
+          templateUrl  = $moment.$$pickerTemplates[templateName];
+      if (templateUrl)
+        return templateUrl;
+      // Ya dun' goofed.
+      $log.error('Error: [momentDatepicker] Picker template for \''+ templateName +'\' is undefined. Templates must be defined with \'$momentProvider.definePickerTemplate\'.');
+    },
     scope: {
       dateModel:   '=momentDatepicker',
       format:      '=?',
