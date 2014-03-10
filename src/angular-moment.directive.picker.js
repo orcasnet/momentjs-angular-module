@@ -8,7 +8,7 @@ angular.module('moment')
 
 .directive('picker', ['$moment', '$compile', 'getOffset', function inputDirective($moment, $compile, getOffset) {
   var defaultStyleAttr = 'style="position:absolute"',
-      copiedAttrs      = 'format modelFormat min max pickerTemplate'.split(' ');
+      copiedAttrs      = 'format modelFormat min max'.split(' ');
 
   return {
     restrict: 'A',
@@ -20,6 +20,9 @@ angular.module('moment')
       var pickerAttrs = [ defaultStyleAttr ];
 
       // Copy relevent attrs from input to picker
+      if (attr.picker)
+        pickerAttrs.push('template='+ attr.picker);
+
       angular.forEach(copiedAttrs, function(name) {
         if (attr[name])
           pickerAttrs.push(name +'="'+ attr[name] +'"');
@@ -32,7 +35,7 @@ angular.module('moment')
       pickerAttrs.push('ng-show="$momentPicker[\''+ attr.ngModel +'\']"');
 
       // Compile/inject/bind events to picker
-      var pickerElement = $compile('<div moment-datepicker="'+ attr.ngModel +'" '+ pickerAttrs.join(' ') +'></div>')(scope);
+      var pickerElement = $compile('<div moment-picker="'+ attr.ngModel +'" '+ pickerAttrs.join(' ') +'></div>')(scope);
       element.after(pickerElement);
 
       pickerElement.on('mousedown', function(event) {
@@ -78,7 +81,7 @@ angular.module('moment')
   return {
     restrict: 'A',
     templateUrl: function(tElement, tAttrs) {
-      var templateName = tAttrs.pickerTemplate || 'default',
+      var templateName = tAttrs.template || 'default',
           templateUrl  = $moment.$$pickerTemplates[templateName];
       if (templateUrl)
         return templateUrl;
@@ -86,7 +89,7 @@ angular.module('moment')
       $log.error('Error: [momentDatepicker] Picker template for \''+ templateName +'\' is undefined. Templates must be defined with \'$momentProvider.definePickerTemplate\'.');
     },
     scope: {
-      dateModel:   '=momentDatepicker',
+      dateModel:   '=momentPicker',
       format:      '=?',
       modelFormat: '=?',
       min:         '=?',
