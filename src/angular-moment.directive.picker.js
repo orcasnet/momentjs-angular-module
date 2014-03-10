@@ -6,15 +6,15 @@
 
 angular.module('moment')
 
-.directive('momentPicker', ['$moment', '$compile', 'getOffset', function inputDirective($moment, $compile, getOffset) {
+.directive('picker', ['$moment', '$compile', 'getOffset', function inputDirective($moment, $compile, getOffset) {
   var defaultStyleAttr = 'style="position:absolute"',
-      copiedAttrs      = 'format modelFormat min max'.split(' ');
+      copiedAttrs      = 'format modelFormat min max pickerTemplate'.split(' ');
 
   return {
     restrict: 'A',
     require: '?ngModel',
     link: function(scope, element, attr, ctrl) {
-      if (!ctrl)
+      if (!ctrl || attr.type !== 'moment')
         return;
 
       var pickerAttrs = [ defaultStyleAttr ];
@@ -71,14 +71,13 @@ angular.module('moment')
 }])
 
 
-.directive('momentDatepicker', ['$moment', '$log', function inputDirective($moment, $log) {
+.directive('momentPicker', ['$moment', '$log', function inputDirective($moment, $log) {
   var weekStartDay = $moment().startOf('week').format('d'),
       weekEndDay   = $moment().endOf('week')  .format('d');
 
   return {
     restrict: 'A',
     templateUrl: function(tElement, tAttrs) {
-      console.log(this);
       var templateName = tAttrs.pickerTemplate || 'default',
           templateUrl  = $moment.$$pickerTemplates[templateName];
       if (templateUrl)
