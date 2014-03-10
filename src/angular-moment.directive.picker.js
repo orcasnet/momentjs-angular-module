@@ -235,16 +235,15 @@ angular.module('moment')
             nextMonthMoment = scope.displayMoment.clone().endOf('month'),
             thisMonth       = scope.displayMoment.format('M');
 
-        while (lastMonthMoment.format('d') !== weekStartDay) {
+        while (lastMonthMoment.format('d') !== weekStartDay)
           scope.lastMonthMoments.unshift(lastMonthMoment.subtract(1, 'day').clone());
-        }
 
         while (thisMonthMoment.format('M') === thisMonth) {
           scope.thisMonthMoments.push(thisMonthMoment.clone());
           thisMonthMoment.add(1, 'day');
         }
 
-        while (nextMonthMoment.format('d') !== weekEndDay)
+        while (scope.lastMonthMoments.length + scope.thisMonthMoments.length + scope.nextMonthMoments.length !== 42)
           scope.nextMonthMoments.push(nextMonthMoment.add(1, 'day').clone());
       }
 
