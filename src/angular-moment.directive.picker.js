@@ -1,78 +1,10 @@
 /*
-  Angular Moment.js Datepicker
+  Angular Moment.js Moment Picker
 */
 
 'use strict';
 
 angular.module('moment')
-
-.directive('picker', ['$moment', '$compile', 'getOffset', function inputDirective($moment, $compile, getOffset) {
-  var defaultStyleAttr = 'style="position:absolute"',
-      copiedAttrs      = 'format modelFormat min max'.split(' ');
-
-  return {
-    restrict: 'A',
-    require: '?ngModel',
-    link: function(scope, element, attr, ctrl) {
-      if (!ctrl || attr.type !== 'moment')
-        return;
-
-      var pickerAttrs = [ defaultStyleAttr ];
-
-      // Copy relevent attrs from input to picker
-      if (attr.picker)
-        pickerAttrs.push('template='+ attr.picker);
-
-      angular.forEach(copiedAttrs, function(name) {
-        if (attr[name])
-          pickerAttrs.push(name +'="'+ attr[name] +'"');
-      });
-
-      // 'ngShow' state tracking
-      if (!scope.$momentPicker)
-        scope.$momentPicker = {};
-      scope.$momentPicker[attr.ngModel] = false;
-      pickerAttrs.push('ng-show="$momentPicker[\''+ attr.ngModel +'\']"');
-
-      // Compile/inject/bind events to picker
-      var pickerElement = $compile('<div moment-picker="'+ attr.ngModel +'" '+ pickerAttrs.join(' ') +'></div>')(scope);
-      element.after(pickerElement);
-
-      pickerElement.on('mousedown', function(event) {
-        event.preventDefault();
-      });
-
-      // Input event binding
-      element.on('focus click', function(event) {
-        var offset = getOffset(element[0]);
-  
-        pickerElement.css({
-          left: offset.left + 'px',
-          top: offset.bottom + 'px'
-        });
-
-        scope.$apply(function(scope) {
-          scope.$momentPicker[attr.ngModel] = true;
-        });
-      });
-
-      element.on('blur keydown', function(event) {
-        if (event.type == 'keydown' && event.which !== 27)
-          return;
-        scope.$apply(function(scope) {
-          scope.$momentPicker[attr.ngModel] = false;
-        });
-      });
-
-      // Destruction cleanup
-      scope.$on('$destroy', function() {
-        pickerElement.off().remove();
-      });
-
-    }
-  };
-}])
-
 
 .directive('momentPicker', ['$moment', '$log', function inputDirective($moment, $log) {
   var weekStartDay = $moment().startOf('week').format('d'),
@@ -247,10 +179,78 @@ angular.module('moment')
           scope.nextMonthMoments.push(nextMonthMoment.add(1, 'day').clone());
       }
 
-
-
     }
   };
 
+}])
+
+
+// Picker extends moment input directive with positioned momentPicker
+
+.directive('picker', ['$moment', '$compile', 'getOffset', function inputDirective($moment, $compile, getOffset) {
+  var defaultStyleAttr = 'style="position:absolute"',
+      copiedAttrs      = 'format modelFormat min max'.split(' ');
+
+  return {
+    restrict: 'A',
+    require: '?ngModel',
+    link: function(scope, element, attr, ctrl) {
+      if (!ctrl || attr.type !== 'moment')
+        return;
+
+      var pickerAttrs = [ defaultStyleAttr ];
+
+      // Copy relevent attrs from input to picker
+      if (attr.picker)
+        pickerAttrs.push('template='+ attr.picker);
+
+      angular.forEach(copiedAttrs, function(name) {
+        if (attr[name])
+          pickerAttrs.push(name +'="'+ attr[name] +'"');
+      });
+
+      // 'ngShow' state tracking
+      if (!scope.$momentPicker)
+        scope.$momentPicker = {};
+      scope.$momentPicker[attr.ngModel] = false;
+      pickerAttrs.push('ng-show="$momentPicker[\''+ attr.ngModel +'\']"');
+
+      // Compile/inject/bind events to picker
+      var pickerElement = $compile('<div moment-picker="'+ attr.ngModel +'" '+ pickerAttrs.join(' ') +'></div>')(scope);
+      element.after(pickerElement);
+
+      pickerElement.on('mousedown', function(event) {
+        event.preventDefault();
+      });
+
+      // Input event binding
+      element.on('focus click', function(event) {
+        var offset = getOffset(element[0]);
+  
+        pickerElement.css({
+          left: offset.left + 'px',
+          top: offset.bottom + 'px'
+        });
+
+        scope.$apply(function(scope) {
+          scope.$momentPicker[attr.ngModel] = true;
+        });
+      });
+
+      element.on('blur keydown', function(event) {
+        if (event.type == 'keydown' && event.which !== 27)
+          return;
+        scope.$apply(function(scope) {
+          scope.$momentPicker[attr.ngModel] = false;
+        });
+      });
+
+      // Destruction cleanup
+      scope.$on('$destroy', function() {
+        pickerElement.off().remove();
+      });
+
+    }
+  };
 }]);
 
