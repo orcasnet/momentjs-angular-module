@@ -120,24 +120,33 @@ angular.module('moment')
 
         angular.forEach(classes.split(' '), function(className) {
           switch(className) {
-            case 'today':        classObject[className] = moment.isSame(scope.today, 'day'); break;
-            case 'this-week':    classObject[className] = moment.isSame(scope.today, 'week'); break;
-            case 'this-month':   classObject[className] = moment.isSame(scope.today, 'month'); break;
-            case 'this-year':    classObject[className] = moment.isSame(scope.today, 'year'); break;
+            case 'current':         // Same as current-day
+            case 'current-day':     classObject[className +' current'] = moment.isSame(scope.today, 'day'); break;
+            case 'current-week':    classObject[className +' current'] = moment.isSame(scope.today, 'week'); break;
+            case 'current-month':   classObject[className +' current'] = moment.isSame(scope.today, 'month'); break;
+            case 'current-year':    classObject[className +' current'] = moment.isSame(scope.today, 'year'); break;
 
-            case 'picked-day':   classObject[className] = moment.isSame(scope.dateMoment, 'day'); break;
-            case 'picked-week':  classObject[className] = moment.isSame(scope.dateMoment, 'week'); break;
-            case 'picked-month': classObject[className] = moment.isSame(scope.dateMoment, 'month'); break;
-            case 'picked-year':  classObject[className] = moment.isSame(scope.dateMoment, 'year'); break;
+            case 'picked': classObject[className] = moment.isSame(scope.dateMoment, 'day'); break;
+            // case 'picked-day':   classObject[className] = moment.isSame(scope.dateMoment, 'day'); break;
+            // case 'picked-week':  classObject[className] = moment.isSame(scope.dateMoment, 'week'); break;
+            // case 'picked-month': classObject[className] = moment.isSame(scope.dateMoment, 'month'); break;
+            // case 'picked-year':  classObject[className] = moment.isSame(scope.dateMoment, 'year'); break;
 
             // We'll only check this if a min or max is set
             case 'invalid':
+            case 'invalid-day':
+            case 'invalid-week':
+            case 'invalid-month':
+            case 'invalid-year':
               if (!moments.min && !moments.max)
                 break;
-              if (moments.min && moment.isBefore(moments.min, 'day'))
-                classObject.invalid = true;
-              else if (moments.max && moment.isBefore(moments.max, 'day'))
-                classObject.invalid = true;
+
+              var unit = className.split('-')[1];
+
+              if (moments.min && moment.isBefore(moments.min, unit || 'day')) 
+                classObject[className + ' invalid'] = true;
+              else if (moments.max && moment.isAfter(moments.max, unit || 'day'))
+                classObject[className + ' invalid'] = true;
               break;
           }
         });
