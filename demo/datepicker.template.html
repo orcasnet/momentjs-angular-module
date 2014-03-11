@@ -23,9 +23,9 @@
 
   <div ng-if="ngShow">
     <div ng-repeat="moment in weekMoments" ng-bind="moment.format('dd')" class="datepick-cell datepick-dayname"></div
-    ><div ng-repeat="moment in lastMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="getDateCellClassNames(moment)" class="datepick-cell datepick-day datepick-lastmonth"></div
-    ><div ng-repeat="moment in thisMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="getDateCellClassNames(moment)" class="datepick-cell datepick-day datepick-thismonth"></div
-    ><div ng-repeat="moment in nextMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="getDateCellClassNames(moment)" class="datepick-cell datepick-day datepick-nextmonth"></div>
+    ><div ng-repeat="moment in lastMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="getClasses(moment, 'current-month today current invalid')" class="datepick-cell datepick-day datepick-lastmonth"></div
+    ><div ng-repeat="moment in thisMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="getClasses(moment, 'current-month today current current-week weekend invalid')" class="datepick-cell datepick-day datepick-thismonth"></div
+    ><div ng-repeat="moment in nextMonthMoments" ng-bind="moment.format('D')" ng-click="setDateTo(moment)" ng-class="getClasses(moment, 'current-month today current invalid')" class="datepick-cell datepick-day datepick-nextmonth"></div>
   </div>
   
 

@@ -6,7 +6,7 @@
 
 angular.module('moment')
 
-.directive('momentPicker', ['$moment', '$log', function inputDirective($moment, $log) {
+.directive('momentPicker', ['$moment', '$log', 'indexOf', function inputDirective($moment, $log, indexOf) {
   var weekStartDay = $moment().startOf('week').format('d'),
       weekEndDay   = $moment().endOf('week')  .format('d');
 
@@ -103,26 +103,46 @@ angular.module('moment')
 
       // View helpers
       ////////////////
-      
-      scope.getDateCellClassNames = function(moment) {
-        // isWeekend may not be accurate for all locales
-        var isWeekend = /0|7/.test(moment.isoWeekday()),
-            isInvalid = false;
 
-        if (moments.min) {
-          isInvalid = moment.isBefore(moments.min, 'day');
-        }
-        if (moments.max && !isInvalid) {
-          isInvalid = moment.isAfter(moments.max, 'day');
-        }
+      scope.getClasses = function(moment, classes) {
+        var isWeekend   = /0|6/.test(moment.isoWeekday()),
+            isWeekday   = !isWeekend,
+            classObject = {
+              weekend: isWeekend,
+              weekday: isWeekday
+            };
 
-        return {
-          today:   moment.isSame($moment(),  'day'),
-          current: moment.isSame(scope.dateMoment, 'day'),
-          weekend: isWeekend,
-          weekday: !isWeekend,
-          invalid: isInvalid
-        };
+        // Convenience classes: jan fri
+        classObject[ moment.format('MMM ddd').toLowerCase() ] = true;
+
+        if (!classes)
+          return;
+
+        angular.forEach(classes.split(' '), function(className) {
+          switch(className) {
+            case 'today':        classObject[className] = moment.isSame(scope.today, 'day'); break;
+            case 'this-week':    classObject[className] = moment.isSame(scope.today, 'week'); break;
+            case 'this-month':   classObject[className] = moment.isSame(scope.today, 'month'); break;
+            case 'this-year':    classObject[className] = moment.isSame(scope.today, 'year'); break;
+
+            case 'picked-day':   classObject[className] = moment.isSame(scope.dateMoment, 'day'); break;
+            case 'picked-week':  classObject[className] = moment.isSame(scope.dateMoment, 'week'); break;
+            case 'picked-month': classObject[className] = moment.isSame(scope.dateMoment, 'month'); break;
+            case 'picked-year':  classObject[className] = moment.isSame(scope.dateMoment, 'year'); break;
+
+            // We'll only check this if a min or max is set
+            case 'invalid':
+              if (!moments.min && !moments.max)
+                break;
+              if (moments.min && moment.isBefore(moments.min, 'day'))
+                classObject.invalid = true;
+              else if (moments.max && moment.isBefore(moments.max, 'day'))
+                classObject.invalid = true;
+              break;
+          }
+        });
+
+        return classObject;
       };
 
       scope.setDateTo = function(moment) {
@@ -130,7 +150,7 @@ angular.module('moment')
           return;
         if (moments.max && moment.isAfter(moments.max))
           return;
-        scope.dateModel = moment.format($moment.$defaultModelFormat);
+        scope.dateModel = moment.format(format);
       };
 
 
@@ -161,11 +181,13 @@ angular.module('moment')
         scope.lastMonthMoments = [];
         scope.thisMonthMoments = [];
         scope.nextMonthMoments = [];
+        scope.monthsThisYearMoments = [];
 
         var lastMonthMoment = scope.displayMoment.clone().startOf('month'),
             thisMonthMoment = lastMonthMoment.clone(),
             nextMonthMoment = scope.displayMoment.clone().endOf('month'),
-            thisMonth       = scope.displayMoment.format('M');
+            thisMonth       = scope.displayMoment.format('M'),
+            thisYear        = scope.displayMoment.format('YYYY');
 
         while (lastMonthMoment.format('d') !== weekStartDay)
           scope.lastMonthMoments.unshift(lastMonthMoment.subtract(1, 'day').clone());
@@ -175,8 +197,12 @@ angular.module('moment')
           thisMonthMoment.add(1, 'day');
         }
 
-        while (scope.lastMonthMoments.length + scope.thisMonthMoments.length + scope.nextMonthMoments.length !== 42)
+        while (scope.lastMonthMoments.length + scope.thisMonthMoments.length + scope.nextMonthMoments.length < 42)
           scope.nextMonthMoments.push(nextMonthMoment.add(1, 'day').clone());
+
+        while (scope.monthsThisYearMoments.length < 12)
+          scope.monthsThisYearMoments.push(moment({ year:thisYear, month:scope.monthsThisYearMoments.length }));
+
       }
 
     }
@@ -188,8 +214,12 @@ angular.module('moment')
 // Picker extends moment input directive with positioned momentPicker
 
 .directive('picker', ['$moment', '$compile', 'getOffset', function inputDirective($moment, $compile, getOffset) {
-  var defaultStyleAttr = 'style="position:absolute"',
+  var defaultStyleAttr = 'style="position:absolute" class="input-picker"',
       copiedAttrs      = 'format modelFormat min max'.split(' ');
+
+  var toSpinalCase = function(string) {
+    return string.replace(/[a-z][A-Z]/g, function(w) { return w[0] +'-'+ w[1]; }).toLowerCase();
+  };
 
   return {
     restrict: 'A',
@@ -206,7 +236,7 @@ angular.module('moment')
 
       angular.forEach(copiedAttrs, function(name) {
         if (attr[name])
-          pickerAttrs.push(name +'="'+ attr[name] +'"');
+          pickerAttrs.push(toSpinalCase(name) +'="'+ attr[name] +'"');
       });
 
       // 'ngShow' state tracking
@@ -217,7 +247,7 @@ angular.module('moment')
 
       // Compile/inject/bind events to picker
       var pickerElement = $compile('<div moment-picker="'+ attr.ngModel +'" '+ pickerAttrs.join(' ') +'></div>')(scope);
-      element.after(pickerElement);
+      angular.element(document.body).append(pickerElement);
 
       pickerElement.on('mousedown', function(event) {
         event.preventDefault();
