@@ -79,7 +79,7 @@ angular.module('moment')
           if (attrValue == 'today')
             moment = $moment();
           else
-            moment = $moment(attrValue, $moment.$defaultModelFormat, $moment.$strictModel);
+            moment = $moment(attrValue, $moment.$defaultModelFormat);
         }
         else
           moment = $moment(null);
