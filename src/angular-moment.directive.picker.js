@@ -105,7 +105,7 @@ angular.module('moment')
       ////////////////
 
       scope.getClasses = function(moment, classes) {
-        var isWeekend   = /0|6/.test(moment.isoWeekday()),
+        var isWeekend   = /6|7/.test(moment.isoWeekday()),
             isWeekday   = !isWeekend,
             classObject = {
               weekend: isWeekend,
