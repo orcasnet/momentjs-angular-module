@@ -1,11 +1,8 @@
 {
   "globals": {
-    "window": false,
-    "document": false,
-
     "angular": false,
     "moment": false
   },
-
+  "browser": true,
   "node": true
 }
