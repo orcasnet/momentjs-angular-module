@@ -257,7 +257,7 @@ angular.module('moment')
         ////////////
 
         // TODO: Allow this to be config'ed
-        stepUnit     = 'day',
+        stepUnit     = 'day';
         stepQuantity = 1;
 
         if (attr.step) {
