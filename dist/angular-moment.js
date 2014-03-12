@@ -706,6 +706,13 @@ angular.module('moment')
           return;
         if (moments.max && moment.isAfter(moments.max))
           return;
+
+        // Clamp it to the min/max to keep it valid
+        if (moments.min)
+          moment = moment.min(moments.min);
+        if (moments.max)
+          moment = moment.max(moments.max);
+
         scope.dateModel = moment.format(format);
       };
 
