@@ -36,8 +36,6 @@ angular.module('moment')
   boxElem.style.paddingLeft = 
   boxElem.style.width       = '1px';
 
-
-
   bodyElem.appendChild(boxElem);
   isBoxModel = boxElem.offsetWidth == 2;
   bodyElem.removeChild(boxElem);
@@ -51,9 +49,9 @@ angular.module('moment')
   adjustedScrollTop  = scrollTop  - clientTop;
   adjustedScrollLeft = scrollLeft - clientLeft;
 
-  offsetTop    = boxElem.top    + adjustedScrollTop,
-  offsetLeft   = boxElem.left   + adjustedScrollLeft,
-  offsetBottom = boxElem.bottom + adjustedScrollTop,
+  offsetTop    = boxElem.top    + adjustedScrollTop;
+  offsetLeft   = boxElem.left   + adjustedScrollLeft;
+  offsetBottom = boxElem.bottom + adjustedScrollTop;
   offsetRight  = boxElem.right  + adjustedScrollLeft;
 
   return {
@@ -119,7 +117,10 @@ angular.module('moment')
 
   this.definePickerTemplate = function(template) {
     if (angular.isObject(template) && template.name && template.url)
-      config.$$pickerTemplates[template.name] = template.url;
+      config.$$pickerTemplates[template.name] = {
+        url:  template.url,
+        unit: template.unit || 'days' 
+      };
     return this;
   };
 
@@ -454,7 +455,7 @@ angular.module('moment')
         ////////////
 
         // TODO: Allow this to be config'ed
-        stepUnit     = 'day',
+        stepUnit     = 'day';
         stepQuantity = 1;
 
         if (attr.step) {
@@ -564,17 +565,19 @@ angular.module('moment')
 
 .directive('momentPicker', ['$moment', '$log', 'indexOf', function inputDirective($moment, $log, indexOf) {
   var weekStartDay = $moment().startOf('week').format('d'),
-      weekEndDay   = $moment().endOf('week')  .format('d');
+      weekEndDay   = $moment().endOf('week')  .format('d'),
+      getTemplateDefinition = function(templateName) {
+        return $moment.$$pickerTemplates[templateName || 'default'];
+      };
 
   return {
     restrict: 'A',
     templateUrl: function(tElement, tAttrs) {
-      var templateName = tAttrs.template || 'default',
-          templateUrl  = $moment.$$pickerTemplates[templateName];
-      if (templateUrl)
-        return templateUrl;
+      var template = getTemplateDefinition(tAttrs.template);
+      if (template)
+        return template.url;
       // Ya dun' goofed.
-      $log.error('Error: [momentDatepicker] Picker template for \''+ templateName +'\' is undefined. Templates must be defined with \'$momentProvider.definePickerTemplate\'.');
+      $log.error('Error: [momentDatepicker] Picker template \''+ tAttrs.template +'\' is undefined. Templates must be defined with \'$momentProvider.definePickerTemplate\'.');
     },
     scope: {
       dateModel:   '=momentPicker',
@@ -585,8 +588,9 @@ angular.module('moment')
       ngShow:      '=?'
     },
     link: function(scope, element, attr) {
-      var format  = $moment.$defaultModelFormat,
-          moments = {};
+      var templateUnit = getTemplateDefinition(attr.template).unit,
+          format       = $moment.$defaultModelFormat,
+          moments      = {};
 
       // Initialize
       //////////////
@@ -635,7 +639,7 @@ angular.module('moment')
           if (attrValue == 'today')
             moment = $moment();
           else
-            moment = $moment(attrValue, $moment.$defaultModelFormat, $moment.$strictModel);
+            moment = $moment(attrValue, $moment.$defaultModelFormat);
         }
         else
           moment = $moment(null);
@@ -661,7 +665,7 @@ angular.module('moment')
       ////////////////
 
       scope.getClasses = function(moment, classes) {
-        var isWeekend   = /0|6/.test(moment.isoWeekday()),
+        var isWeekend   = /6|7/.test(moment.isoWeekday()),
             isWeekday   = !isWeekend,
             classObject = {
               weekend: isWeekend,
@@ -672,39 +676,34 @@ angular.module('moment')
         classObject[ moment.format('MMM ddd').toLowerCase() ] = true;
 
         if (!classes)
-          return;
+          return classObject;
 
         angular.forEach(classes.split(' '), function(className) {
-          switch(className) {
-            case 'today':        classObject[className] = moment.isSame(scope.today, 'day'); break;
-            case 'this-week':    classObject[className] = moment.isSame(scope.today, 'week'); break;
-            case 'this-month':   classObject[className] = moment.isSame(scope.today, 'month'); break;
-            case 'this-year':    classObject[className] = moment.isSame(scope.today, 'year'); break;
+          var name = className.split('-')[0],
+              unit = className.split('-')[1] || templateUnit;
 
-            case 'picked-day':   classObject[className] = moment.isSame(scope.dateMoment, 'day'); break;
-            case 'picked-week':  classObject[className] = moment.isSame(scope.dateMoment, 'week'); break;
-            case 'picked-month': classObject[className] = moment.isSame(scope.dateMoment, 'month'); break;
-            case 'picked-year':  classObject[className] = moment.isSame(scope.dateMoment, 'year'); break;
+          if (name == 'picked')
+            classObject[className] = moment.isSame(scope.dateMoment, templateUnit);
 
-            // We'll only check this if a min or max is set
-            case 'invalid':
-              if (!moments.min && !moments.max)
-                break;
-              if (moments.min && moment.isBefore(moments.min, 'day'))
-                classObject.invalid = true;
-              else if (moments.max && moment.isBefore(moments.max, 'day'))
-                classObject.invalid = true;
-              break;
+          else if (name == 'current')
+            classObject[className +' current'] = moment.isSame(scope.today, unit);
+
+          else if (name == 'invalid' && (moments.min || moments.max)) {
+            if (moments.min && moment.isBefore(moments.min, unit))
+              classObject[className + ' invalid'] = true;
+            else if (moments.max && moment.isAfter(moments.max, unit))
+              classObject[className + ' invalid'] = true;
           }
+
         });
 
         return classObject;
       };
 
       scope.setDateTo = function(moment) {
-        if (moments.min && moment.isBefore(moments.min))
+        if (moments.min && moment.isBefore(moments.min, templateUnit))
           return;
-        if (moments.max && moment.isAfter(moments.max))
+        if (moments.max && moment.isAfter(moments.max, templateUnit))
           return;
 
         // Clamp it to the min/max to keep it valid
