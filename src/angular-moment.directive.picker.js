@@ -8,17 +8,19 @@ angular.module('moment')
 
 .directive('momentPicker', ['$moment', '$log', 'indexOf', function inputDirective($moment, $log, indexOf) {
   var weekStartDay = $moment().startOf('week').format('d'),
-      weekEndDay   = $moment().endOf('week')  .format('d');
+      weekEndDay   = $moment().endOf('week')  .format('d'),
+      getTemplateDefinition = function(templateName) {
+        return $moment.$$pickerTemplates[templateName || 'default'];
+      };
 
   return {
     restrict: 'A',
     templateUrl: function(tElement, tAttrs) {
-      var templateName = tAttrs.template || 'default',
-          templateUrl  = $moment.$$pickerTemplates[templateName];
-      if (templateUrl)
-        return templateUrl;
+      var template = getTemplateDefinition(tAttrs.template);
+      if (template)
+        return template.url;
       // Ya dun' goofed.
-      $log.error('Error: [momentDatepicker] Picker template for \''+ templateName +'\' is undefined. Templates must be defined with \'$momentProvider.definePickerTemplate\'.');
+      $log.error('Error: [momentDatepicker] Picker template \''+ tAttrs.template +'\' is undefined. Templates must be defined with \'$momentProvider.definePickerTemplate\'.');
     },
     scope: {
       dateModel:   '=momentPicker',
@@ -29,8 +31,9 @@ angular.module('moment')
       ngShow:      '=?'
     },
     link: function(scope, element, attr) {
-      var format  = $moment.$defaultModelFormat,
-          moments = {};
+      var templateUnit = getTemplateDefinition(attr.template).unit,
+          format       = $moment.$defaultModelFormat,
+          moments      = {};
 
       // Initialize
       //////////////
@@ -116,44 +119,42 @@ angular.module('moment')
         classObject[ moment.format('MMM ddd').toLowerCase() ] = true;
 
         if (!classes)
-          return;
+          return classObject;
 
         angular.forEach(classes.split(' '), function(className) {
-          switch(className) {
-            case 'picked': classObject[className] = moment.isSame(scope.dateMoment, 'day'); break;
+          var name = className.split('-')[0],
+              unit = className.split('-')[1] || templateUnit;
 
-            case 'current':       // Same as current-day
-            case 'current-day':   classObject[className +' current'] = moment.isSame(scope.today, 'day'); break;
-            case 'current-week':  classObject[className +' current'] = moment.isSame(scope.today, 'week'); break;
-            case 'current-month': classObject[className +' current'] = moment.isSame(scope.today, 'month'); break;
-            case 'current-year':  classObject[className +' current'] = moment.isSame(scope.today, 'year'); break;
+          if (name == 'picked')
+            classObject[className] = moment.isSame(scope.dateMoment, templateUnit);
 
-            // We'll only check this if a min or max is set
-            case 'invalid':
-            case 'invalid-day':
-            case 'invalid-week':
-            case 'invalid-month':
-            case 'invalid-year':
-              if (!moments.min && !moments.max)
-                break;
-              var specificity = className.split('-')[1] || 'day';
+          else if (name == 'current')
+            classObject[className +' current'] = moment.isSame(scope.today, unit);
 
-              if (moments.min && moment.isBefore(moments.min, specificity)) 
-                classObject[className + ' invalid'] = true;
-              else if (moments.max && moment.isAfter(moments.max, specificity))
-                classObject[className + ' invalid'] = true;
-              break;
+          else if (name == 'invalid' && (moments.min || moments.max)) {
+            if (moments.min && moment.isBefore(moments.min, unit))
+              classObject[className + ' invalid'] = true;
+            else if (moments.max && moment.isAfter(moments.max, unit))
+              classObject[className + ' invalid'] = true;
           }
+
         });
 
         return classObject;
       };
 
       scope.setDateTo = function(moment) {
-        if (moments.min && moment.isBefore(moments.min))
+        if (moments.min && moment.isBefore(moments.min, templateUnit))
           return;
-        if (moments.max && moment.isAfter(moments.max))
+        if (moments.max && moment.isAfter(moments.max, templateUnit))
           return;
+
+        // Clamp it to the min/max to keep it valid
+        if (moments.min)
+          moment = moment.min(moments.min);
+        if (moments.max)
+          moment = moment.max(moments.max);
+
         scope.dateModel = moment.format(format);
       };
 

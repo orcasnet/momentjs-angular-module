@@ -52,7 +52,10 @@ angular.module('moment')
 
   this.definePickerTemplate = function(template) {
     if (angular.isObject(template) && template.name && template.url)
-      config.$$pickerTemplates[template.name] = template.url;
+      config.$$pickerTemplates[template.name] = {
+        url:  template.url,
+        unit: template.unit || 'days' 
+      };
     return this;
   };
 
