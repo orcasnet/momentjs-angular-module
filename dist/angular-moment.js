@@ -1,4 +1,4 @@
-//!  Angular Moment.js v0.2.8
+//!  Angular Moment.js v0.3.0
 //!  https://github.com/shaungrady/angular-momentjs
 //!  (c) 2014 Shaun Grady
 //!  License: MIT
@@ -559,6 +559,9 @@ angular.module('moment')
   Angular Moment.js Moment Picker
 */
 
+// TODO: No test coverage :(
+// TODO: A concept of 'interval' instead of 'unit', and a way of setting the display bounds? E.g., mid-month month-end picker.
+
 'use strict';
 
 angular.module('moment')
@@ -713,6 +716,9 @@ angular.module('moment')
           moment = moment.max(moments.max);
 
         scope.dateModel = moment.format(format);
+
+        if (scope.hasNgShowAttr)
+          scope.ngShow = false;
       };
 
 
