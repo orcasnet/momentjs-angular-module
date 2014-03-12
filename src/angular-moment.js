@@ -36,8 +36,6 @@ angular.module('moment')
   boxElem.style.paddingLeft = 
   boxElem.style.width       = '1px';
 
-
-
   bodyElem.appendChild(boxElem);
   isBoxModel = boxElem.offsetWidth == 2;
   bodyElem.removeChild(boxElem);
@@ -51,9 +49,9 @@ angular.module('moment')
   adjustedScrollTop  = scrollTop  - clientTop;
   adjustedScrollLeft = scrollLeft - clientLeft;
 
-  offsetTop    = boxElem.top    + adjustedScrollTop,
-  offsetLeft   = boxElem.left   + adjustedScrollLeft,
-  offsetBottom = boxElem.bottom + adjustedScrollTop,
+  offsetTop    = boxElem.top    + adjustedScrollTop;
+  offsetLeft   = boxElem.left   + adjustedScrollLeft;
+  offsetBottom = boxElem.bottom + adjustedScrollTop;
   offsetRight  = boxElem.right  + adjustedScrollLeft;
 
   return {
