@@ -4,7 +4,7 @@
   "description": "An AngularJS module to add Moment.js functionality to Angular.",
   "author": "Shaun Grady <grady@shaungrady.com>",
   "license": "MIT",
-  "homepage": "https://github.com/shaungrady/angular-momentjs",
+  "homepage": "https://github.com/orcasnet.com/angular-momentjs",
   "main": "src/angular-moment.js",
   "dependencies": {},
   "devDependencies": {
@@ -23,10 +23,12 @@
     "karma-firefox-launcher": "~0.1"
   },
   "scripts": {
-    "test": "grunt"
+    "build": "gulp build",
+    "develop": "gulp develop",
+    "test": "gulp test"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/shaungrady/angular-momentjs.git"
+    "url": "git://github.com/orcasnet.com/angular-momentjs.git"
   }
 }
