@@ -7,12 +7,23 @@
 
   <script src="../bower_components/angular/angular.js"></script>
   <script src="../bower_components/momentjs/moment.js"></script>
-
   <script src="../dist/angular-moment.js"></script>
-
   <script src="demo.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="demo.css">
+  <link rel="stylesheet" type="text/css" href="datepicker.css">
+
 </head>
 <body ng-controller="DemoCtrl">
-  
+  <div ng-form name="form">
+
+    <p style="padding-left:20px">Date: <input type="moment" max="maxDate" ng-model="date" picker="simple"> {{ date }}</p>
+    <p style="padding-left:20px">Max: <input type="moment" ng-model="maxDate"> {{ date }}</p>
+
+    <div moment-picker="maxDate"></div>
+
+
+
+  </div>
 </body>
 </html>

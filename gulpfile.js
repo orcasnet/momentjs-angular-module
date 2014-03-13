@@ -10,7 +10,7 @@ var jsFiles = [
   './src/angular-moment.js',
   './src/angular-moment.service.js',
   './src/angular-moment.filters.js',
-  './src/angular-moment.directive.js'
+  './src/angular-moment.directive.*.js',
 ];
 
 // Task to run during development
@@ -32,13 +32,13 @@ gulp.task('js', function() {
     .pipe(gulp.dest('./dist/'))
     .pipe(rename({ suffix: '.min' }))
     .pipe(uglify({
-      outSourceMaps: true,
+      outSourceMap: true,
       preserveComments: 'some'
     }))
     .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('test', karmaTest);
+gulp.task('test', ['js'], karmaTest);
 
 function karmaTest(action) {
   action = action || 'run';

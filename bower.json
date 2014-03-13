@@ -1,10 +1,10 @@
 {
   "name": "angular-momentjs",
-  "version": "0.2.8",
-  "homepage": "https://github.com/shaungrady/angular-momentjs",
+  "version": "0.3.0",
+  "homepage": "https://github.com/orcasnet/angular-momentjs",
   "authors": [
     "Shaun Grady <grady@shaungrady.com>",
-    "https://github.com/shaungrady/angular-momentjs/graphs/contributors"
+    "https://github.com/orcasnet/angular-momentjs/graphs/contributors"
   ],
   "description": "An AngularJS module to add Moment.js functionality to Angular.",
   "main": [
@@ -16,7 +16,7 @@
     "momentjs"
   ],
   "license": "MIT",
-  "private": true,
+  "private": false,
   "ignore": [
     "**/.*",
     "node_modules",

@@ -10,6 +10,7 @@ angular.module('moment')
   // Strict parsing has trouble in Moment.js v2.3—2.5 with short tokens
   // E.g. 1-31-2000, M-D-YYYY is invalid.
   var config = {
+    $$pickerTemplates: {},
     $strictView: true,
     $strictModel: true,
     $defaultViewFormat: 'L',
@@ -49,6 +50,15 @@ angular.module('moment')
     return this;
   };
 
+  this.definePickerTemplate = function(template) {
+    if (angular.isObject(template) && template.name && template.url)
+      config.$$pickerTemplates[template.name] = {
+        url:  template.url,
+        unit: template.unit || 'days' 
+      };
+    return this;
+  };
+
   this.$get = function() {
     if (angular.isDefined(moment.$strictView))
       return moment;
@@ -67,6 +77,9 @@ angular.module('moment')
       });
       Object.defineProperty(moment, '$parseFormat', {
         value: config.$parseFormat
+      });
+      Object.defineProperty(moment, '$$pickerTemplates', {
+        value: angular.copy(config.$$pickerTemplates)
       });
     }
     catch(err) { angular.extend(moment, config); }
