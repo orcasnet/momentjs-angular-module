@@ -33,7 +33,139 @@ angular.module('moment')
       max:         '=?',
       ngShow:      '=?'
     },
-    link: function(scope, element, attr) {
+    controller: ['$scope', '$element', '$attrs', '$parse', '$animate', '$moment', 'indexOf',
+      function($scope, $element, $attr, $parse, $animate, $moment, indexOf) {
+        var self = this;
+
+        self.template = getTemplateDefinition($attr.template);
+        self.format   = $moment.$defaultModelFormat;
+
+        self.pickedMoment  = Number.NaN;
+        self.displayMoment = $moment();
+        self.maxMoment     = Number.NaN;
+        self.minMoment     = Number.NaN;
+
+        self.visible = true;
+        self.hidden  = false;
+
+
+        // Ctrl Methods
+        ////////////////
+
+        self.setVisibility = function(isVisible) {
+          self.hidden  = !isVisible;
+          self.visible = !!isVisible;
+          $animate[!isVisible ? 'addClass' : 'removeClass']($element, 'ng-hide');
+        };
+
+        self.setPickedMoment = function(input, format, lang, strict) {
+          var moment  = $moment.apply(null, arguments),
+              isValid = input && moment.isValid();
+
+          if (!isValid) {
+            self.pickedMoment   = null;
+            $scope.pickedMoment = null;
+            return;
+          }
+          
+          if (self.minMoment && moment.isBefore(self.minMoment, self.template.unit))
+            return;
+          if (self.maxMoment && moment.isAfter(self.maxMoment, self.template.unit))
+            return;
+
+          // Clamp it to the min/max to keep it valid
+          if (self.minMoment)
+            moment = moment.min(self.minMoment);
+          if (self.maxMoment)
+            moment = moment.max(self.maxMoment);
+
+          if (moment.isSame(self.pickedMoment))
+            return;
+
+          self.pickedMoment   = moment.clone();
+          $scope.pickedMoment = moment.clone();
+          $scope.dateModel    = moment.format(format);
+
+          self.setDisplayMoment(moment);
+        };
+
+        self.setDisplayMoment = function(input, format, lang, strict) {
+          var moment  = $moment.apply(null, arguments),
+              isValid = input && moment.isValid();
+
+          self.displayMoment   = isValid ? moment.clone() : moment();
+          $scope.displayMoment = isValid ? moment.clone() : moment();
+        };
+
+        self.setMinMoment = function(input, format, lang, strict) {
+          var moment  = $moment.apply(null, arguments),
+              isValid = input && moment.isValid();
+
+          self.minMoment = isValid ? moment.clone() : null;
+        };
+
+        self.setMaxMoment = function(input, format, lang, strict) {
+          var moment  = $moment.apply(null, arguments),
+              isValid = input && moment.isValid();
+
+          self.minMoment = isValid ? moment.clone() : null;
+        };
+
+        self.setFormat = function(format) {
+          if (angular.equals(self.format, format))
+            return;
+
+          self.format = format || $moment.$defaultModelFormat;
+          self.setPickedMoment($scope.dateModel, self.format, $moment.$strictModel);
+        };
+
+
+        // Watchers
+        ///////////
+
+        $scope.$watch('dateModel', function(modelValue) {
+          self.setPickedMoment(modelValue, self.format, $moment.$strictModel);
+        });
+
+        // Format or modelFormat
+        if ($attr.format && !$attr.modelFormat) {
+          self.format = $scope.format || $moment.$defaultModelFormat;
+          $scope.$watch('format', self.setFormat);
+        }
+        else if ($attr.modelFormat) {
+          self.format = $scope.modelFormat || $moment.$defaultModelFormat;
+          $scope.$watch('modelFormat', self.setFormat);
+        }
+
+        // Min, Max
+        if ($attr.min) {
+          $scope.$watch($attr.min, function(minValue) {
+            var isArray = angular.isArray(minValue);
+            self.setMinMoment.apply(null, isArray ? minValue : [minValue]);
+          }, true);
+        }
+
+        if ($attr.max) {
+          $attr.$observe($attr.max, function(maxValue) {
+            var isArray = angular.isArray(maxValue);
+            self.setMaxMoment.apply(null, isArray ? maxValue : [maxValue]);
+          }, true);
+        }
+
+
+        // Add ctrl methods to the scope that are
+        // suitable for use in the picker template.
+        ///////////////////////////////////////////
+
+        $scope.setPickerVisibility = self.setVisibility;
+        $scope.setDisplayMoment    = self.setDisplayMoment;
+        $scope.setPickedMoment     = self.setPickedMoment;
+
+      }
+    ],
+    require: ['momentPicker'],
+    link: function(scope, element, attr, ctrl) {
+
       var templateUnit = getTemplateDefinition(attr.template).unit,
           format       = $moment.$defaultModelFormat,
           moments      = {};
@@ -51,60 +183,6 @@ angular.module('moment')
       var i = 7;
       while (i--)
         scope.weekMoments.unshift($moment().startOf('week').add(i, 'day'));
-
-      // Process Format or modelFormat Attr
-      //////////////////////////////////////
-
-      var setFormat = function(newFormat) {
-        if (angular.equals(format, newFormat))
-          return;
-
-        format = newFormat || $moment.$defaultModelFormat;
-        parseDateModel(scope.dateModel);
-      };
-
-      if (attr.format && !attr.modelFormat) {
-        format = scope.format || $moment.$defaultModelFormat;
-        scope.$watch('format', setFormat);
-      }
-      else if (attr.modelFormat) {
-        format = scope.modelFormat || $moment.$defaultModelFormat;
-        scope.$watch('modelFormat', setFormat);
-      }
-
-      // Process Min/Max Attrs
-      /////////////////////////
-
-      var setMomentFromAttr = function(attrName, attrValue) {
-        var moment;
-
-        // Parse
-        if (angular.isArray(attrValue) && attrValue.length == 2)
-          moment = $moment(attrValue[0], attrValue[1], true);
-        else if (attrValue && angular.isString(attrValue)) {
-          if (attrValue == 'today')
-            moment = $moment();
-          else
-            moment = $moment(attrValue, $moment.$defaultModelFormat);
-        }
-        else
-          moment = $moment(null);
-
-        // Set
-        moments[attrName] = moment.isValid() ? moment : null;
-      };
-
-      if (attr.min) {
-        scope.$watch('min', function(minValue) {
-          setMomentFromAttr('min', minValue);
-        }, true);
-      }
-
-      if (attr.max) {
-        scope.$watch('max', function(maxValue) {
-          setMomentFromAttr('max', maxValue);
-        }, true);
-      }
 
 
       // View helpers
@@ -128,8 +206,9 @@ angular.module('moment')
           var name = className.split('-')[0],
               unit = className.split('-')[1] || templateUnit;
 
-          if (name == 'picked')
-            classObject[className] = moment.isSame(scope.dateMoment, templateUnit);
+          if (scope.pickedMoment && name == 'picked') {
+            classObject[className] = moment.isSame(scope.pickedMoment, templateUnit);
+          }
 
           else if (name == 'current')
             classObject[className +' current'] = moment.isSame(scope.today, unit);
@@ -146,42 +225,6 @@ angular.module('moment')
         return classObject;
       };
 
-      scope.setDateTo = function(moment) {
-        if (moments.min && moment.isBefore(moments.min, templateUnit))
-          return;
-        if (moments.max && moment.isAfter(moments.max, templateUnit))
-          return;
-
-        // Clamp it to the min/max to keep it valid
-        if (moments.min)
-          moment = moment.min(moments.min);
-        if (moments.max)
-          moment = moment.max(moments.max);
-
-        scope.dateModel = moment.format(format);
-
-        if (scope.hasNgShowAttr)
-          scope.ngShow = false;
-      };
-
-
-      // Core things
-      ///////////////
-
-      var parseDateModel = function(dateModel) {
-        var moment = $moment(dateModel, format, $moment.$strictModel);
-
-        if (dateModel && moment.isValid()) {
-          scope.dateMoment    = moment.clone();
-          scope.displayMoment = moment.clone();
-        }
-        else {
-          scope.dateMoment    = $moment('');
-          scope.displayMoment = $moment();
-        } 
-      };
-
-      scope.$watch('dateModel', parseDateModel);
 
       scope.$watch(function() { return scope.displayMoment.format('M/YYYY'); }, function(moment, oldMoment) {
         rebuild();
@@ -234,12 +277,17 @@ angular.module('moment')
 
   return {
     restrict: 'A',
-    require: '?ngModel',
+    require: ['picker', '?ngModel'],
+    controller: ['$scope', function($scope) {
+      this.weeeee = 'asd';
+    }],
     link: function(scope, element, attr, ctrl) {
+      console.log('!', ctrl);
       if (!ctrl || attr.type !== 'moment')
         return;
 
-      var pickerAttrs = [ defaultStyleAttr ];
+      var pickerAttrs = [ defaultStyleAttr ],
+          pickerElem, pickerScope, pickerCtrl;
 
       // Copy relevent attrs from input to picker
       if (attr.picker)
@@ -257,10 +305,18 @@ angular.module('moment')
       pickerAttrs.push('ng-show="$momentPicker[\''+ attr.ngModel +'\']"');
 
       // Compile/inject/bind events to picker
-      var pickerElement = $compile('<div moment-picker="'+ attr.ngModel +'" '+ pickerAttrs.join(' ') +'></div>')(scope);
-      angular.element(document.body).append(pickerElement);
+      pickerElem = $compile('<div moment-picker="'+ attr.ngModel +'" '+ pickerAttrs.join(' ') +'></div>')(scope);
 
-      pickerElement.on('mousedown', function(event) {
+      var deregister = scope.$watch(function(){
+        pickerCtrl = pickerElem.controller('momentPicker');
+        if (pickerCtrl) deregister();
+        console.log(pickerCtrl);
+      });
+
+
+      angular.element(document.body).append(pickerElem);
+
+      pickerElem.on('mousedown', function(event) {
         event.preventDefault();
       });
 
@@ -268,7 +324,7 @@ angular.module('moment')
       element.on('focus click', function(event) {
         var offset = getOffset(element[0]);
   
-        pickerElement.css({
+        pickerElem.css({
           left: offset.left + 'px',
           top: offset.bottom + 'px'
         });
@@ -288,7 +344,7 @@ angular.module('moment')
 
       // Destruction cleanup
       scope.$on('$destroy', function() {
-        pickerElement.off().remove();
+        pickerElem.off().remove();
       });
 
     }
