@@ -102,8 +102,8 @@ angular.module('moment')
           var moment  = $moment.apply(null, arguments),
               isValid = input && moment.isValid();
 
-          self.displayMoment   = isValid ? moment.clone() : moment();
-          $scope.displayMoment = isValid ? moment.clone() : moment();
+          self.displayMoment   = isValid ? moment.clone() : $moment();
+          $scope.displayMoment = isValid ? moment.clone() : $moment();
 
           rebuildScopeMoments();
         };
