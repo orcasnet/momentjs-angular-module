@@ -119,7 +119,7 @@ angular.module('moment')
           var moment  = $moment.apply(null, arguments),
               isValid = input && moment.isValid();
 
-          self.minMoment = isValid ? moment.clone() : null;
+          self.maxMoment = isValid ? moment.clone() : null;
         };
 
         self.setFormat = function(format) {
