@@ -41,12 +41,21 @@ angular.module('moment')
         self.format   = $moment.$defaultModelFormat;
 
         self.pickedMoment  = Number.NaN;
-        self.displayMoment = $moment();
         self.maxMoment     = Number.NaN;
         self.minMoment     = Number.NaN;
 
         self.visible = true;
         self.hidden  = false;
+
+        function init() {
+          self.setDisplayMoment($moment());
+          rebuildScopeMoments();
+
+          $scope.weekMoments = []; 
+          var i = 7;
+          while (i--)
+            $scope.weekMoments.unshift($moment().startOf('week').add(i, 'day'));
+        }
 
 
         // Ctrl Methods
@@ -95,6 +104,8 @@ angular.module('moment')
 
           self.displayMoment   = isValid ? moment.clone() : moment();
           $scope.displayMoment = isValid ? moment.clone() : moment();
+
+          rebuildScopeMoments();
         };
 
         self.setMinMoment = function(input, format, lang, strict) {
@@ -161,29 +172,46 @@ angular.module('moment')
         $scope.setDisplayMoment    = self.setDisplayMoment;
         $scope.setPickedMoment     = self.setPickedMoment;
 
+
+        // Private methods
+
+        function rebuildScopeMoments() {
+          // TODO: Check if rebuild is necessary
+
+          $scope.today                 = $moment();
+          $scope.lastMonthMoments      = [];
+          $scope.thisMonthMoments      = [];
+          $scope.nextMonthMoments      = [];
+          $scope.monthsThisYearMoments = [];
+
+          var lastMonthMoment = self.displayMoment.clone().startOf('month'),
+              thisMonthMoment = lastMonthMoment.clone(),
+              nextMonthMoment = self.displayMoment.clone().endOf('month'),
+              thisMonth       = self.displayMoment.format('M'),
+              thisYear        = self.displayMoment.format('YYYY');
+
+          while (lastMonthMoment.format('d') !== weekStartDay)
+            $scope.lastMonthMoments.unshift(lastMonthMoment.subtract(1, 'day').clone());
+
+          while (thisMonthMoment.format('M') === thisMonth) {
+            $scope.thisMonthMoments.push(thisMonthMoment.clone());
+            thisMonthMoment.add(1, 'day');
+          }
+
+          while ($scope.lastMonthMoments.length + $scope.thisMonthMoments.length + $scope.nextMonthMoments.length < 42)
+            $scope.nextMonthMoments.push(nextMonthMoment.add(1, 'day').clone());
+
+          while ($scope.monthsThisYearMoments.length < 12)
+            $scope.monthsThisYearMoments.push(moment({ year:thisYear, month:$scope.monthsThisYearMoments.length }));
+
+        }
+
+
+        init();
       }
     ],
-    require: ['momentPicker'],
+    require: 'momentPicker',
     link: function(scope, element, attr, ctrl) {
-
-      var templateUnit = getTemplateDefinition(attr.template).unit,
-          format       = $moment.$defaultModelFormat,
-          moments      = {};
-
-      // Initialize
-      //////////////
-      scope.hasNgShowAttr = !!attr.ngShow;
-
-      if (!attr.ngShow)
-        scope.ngShow = true;
-
-      scope.displayMoment = $moment();
-      scope.weekMoments   = [];
-
-      var i = 7;
-      while (i--)
-        scope.weekMoments.unshift($moment().startOf('week').add(i, 'day'));
-
 
       // View helpers
       ////////////////
@@ -204,19 +232,19 @@ angular.module('moment')
 
         angular.forEach(classes.split(' '), function(className) {
           var name = className.split('-')[0],
-              unit = className.split('-')[1] || templateUnit;
+              unit = className.split('-')[1] || ctrl.template.unit;
 
           if (scope.pickedMoment && name == 'picked') {
-            classObject[className] = moment.isSame(scope.pickedMoment, templateUnit);
+            classObject[className] = moment.isSame(scope.pickedMoment, ctrl.template.unit);
           }
 
           else if (name == 'current')
             classObject[className +' current'] = moment.isSame(scope.today, unit);
 
-          else if (name == 'invalid' && (moments.min || moments.max)) {
-            if (moments.min && moment.isBefore(moments.min, unit))
+          else if (name == 'invalid' && (ctrl.minMoment || ctrl.maxMoment)) {
+            if (ctrl.minMoment && moment.isBefore(ctrl.minMoment, unit))
               classObject[className + ' invalid'] = true;
-            else if (moments.max && moment.isAfter(moments.max, unit))
+            else if (ctrl.maxMoment && moment.isAfter(ctrl.maxMoment, unit))
               classObject[className + ' invalid'] = true;
           }
 
@@ -224,40 +252,6 @@ angular.module('moment')
 
         return classObject;
       };
-
-
-      scope.$watch(function() { return scope.displayMoment.format('M/YYYY'); }, function(moment, oldMoment) {
-        rebuild();
-      });
-
-      function rebuild() {
-        scope.today = $moment();
-        scope.lastMonthMoments = [];
-        scope.thisMonthMoments = [];
-        scope.nextMonthMoments = [];
-        scope.monthsThisYearMoments = [];
-
-        var lastMonthMoment = scope.displayMoment.clone().startOf('month'),
-            thisMonthMoment = lastMonthMoment.clone(),
-            nextMonthMoment = scope.displayMoment.clone().endOf('month'),
-            thisMonth       = scope.displayMoment.format('M'),
-            thisYear        = scope.displayMoment.format('YYYY');
-
-        while (lastMonthMoment.format('d') !== weekStartDay)
-          scope.lastMonthMoments.unshift(lastMonthMoment.subtract(1, 'day').clone());
-
-        while (thisMonthMoment.format('M') === thisMonth) {
-          scope.thisMonthMoments.push(thisMonthMoment.clone());
-          thisMonthMoment.add(1, 'day');
-        }
-
-        while (scope.lastMonthMoments.length + scope.thisMonthMoments.length + scope.nextMonthMoments.length < 42)
-          scope.nextMonthMoments.push(nextMonthMoment.add(1, 'day').clone());
-
-        while (scope.monthsThisYearMoments.length < 12)
-          scope.monthsThisYearMoments.push(moment({ year:thisYear, month:scope.monthsThisYearMoments.length }));
-
-      }
 
     }
   };
@@ -310,7 +304,6 @@ angular.module('moment')
       var deregister = scope.$watch(function(){
         pickerCtrl = pickerElem.controller('momentPicker');
         if (pickerCtrl) deregister();
-        console.log(pickerCtrl);
       });
 
 
