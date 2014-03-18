@@ -41,7 +41,13 @@ describe('momentPicker directive', function () {
           expect(ctrl.displayMoment.isSame($moment(), 'hour')).toBeTruthy();
         });
 
-        it('should set visible to true', function() {
+        it('should set visible to $defaultModelFormat', function() {
+          var picker = compileHtml('<div moment-picker="date"></div>'),
+              ctrl   = picker.controller('momentPicker');
+          expect(ctrl.format).toBe($moment.$defaultModelFormat);
+        });
+
+        it('should set format to true', function() {
           var picker = compileHtml('<div moment-picker="date"></div>'),
               ctrl   = picker.controller('momentPicker');
           expect(ctrl.visible).toBeTruthy();
@@ -201,9 +207,6 @@ describe('momentPicker directive', function () {
         ctrl.setPickedMoment();
         expect(ctrl.pickedMoment).toBeFalsy();
       });
-
-
-
 
 
 
