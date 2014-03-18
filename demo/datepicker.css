@@ -58,7 +58,7 @@
   /*color: #fff;*/
 }
 
-.datepick-cell.current {
+.datepick-cell.picked {
   background: #cee4f7;
   box-shadow: 0 0 0px 1px #fff inset;
   color: #4e677c;

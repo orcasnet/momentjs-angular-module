@@ -10,7 +10,8 @@ module.exports = function(config) {
     frameworks: ['jasmine'],
 
     preprocessors : {
-      '**/src/*.js': 'coverage'
+      '**/src/*.js': 'coverage',
+      'templates/*.html': 'ng-html2js'
     },
 
     // list of files / patterns to load in the browser
@@ -19,8 +20,13 @@ module.exports = function(config) {
       'bower_components/angular-mocks/angular-mocks.js',
       'bower_components/momentjs/moment.js',
       'dist/angular-moment.js',
-      'test/*.spec.js'
+      'test/*.spec.js',
+      'templates/*.html',
     ],
+
+    ngHtml2JsPreprocessor: {
+      moduleName: 'templates'
+    },
 
     // list of files / patterns to exclude
     exclude: [],

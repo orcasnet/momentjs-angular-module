@@ -1,6 +1,6 @@
 {
   "name": "angular-momentjs",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "An AngularJS module to add Moment.js functionality to Angular.",
   "author": "Shaun Grady <grady@shaungrady.com>",
   "license": "MIT",
@@ -20,7 +20,8 @@
     "karma-jasmine": "0.1",
     "karma-chrome-launcher": "~0.1",
     "karma-safari-launcher": "~0.1",
-    "karma-firefox-launcher": "~0.1"
+    "karma-firefox-launcher": "~0.1",
+    "karma-ng-html2js-preprocessor": "~0.1.0"
   },
   "scripts": {
     "build": "gulp build",

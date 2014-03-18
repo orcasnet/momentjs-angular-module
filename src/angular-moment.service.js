@@ -79,7 +79,8 @@ angular.module('moment')
         value: config.$parseFormat
       });
       Object.defineProperty(moment, '$$pickerTemplates', {
-        value: angular.copy(config.$$pickerTemplates)
+        value: angular.copy(config.$$pickerTemplates),
+        writable: true
       });
     }
     catch(err) { angular.extend(moment, config); }
