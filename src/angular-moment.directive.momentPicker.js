@@ -150,14 +150,14 @@ angular.module('moment')
 
         // Min, Max
         if ($attr.min) {
-          $scope.$watch($attr.min, function(minValue) {
+          $scope.$watch('min', function(minValue) {
             var isArray = angular.isArray(minValue);
             self.setMinMoment.apply(null, isArray ? minValue : [minValue]);
           }, true);
         }
 
         if ($attr.max) {
-          $scope.$watch($attr.max, function(maxValue) {
+          $scope.$watch('max', function(maxValue) {
             var isArray = angular.isArray(maxValue);
             self.setMaxMoment.apply(null, isArray ? maxValue : [maxValue]);
           }, true);
@@ -230,13 +230,13 @@ angular.module('moment')
         if (!classes)
           return classObject;
 
+        // Iterate over requested class names
         angular.forEach(classes.split(' '), function(className) {
           var name = className.split('-')[0],
               unit = className.split('-')[1] || ctrl.template.unit;
 
-          if (scope.pickedMoment && name == 'picked') {
+          if (scope.pickedMoment && name == 'picked')
             classObject[className] = moment.isSame(scope.pickedMoment, ctrl.template.unit);
-          }
 
           else if (name == 'current')
             classObject[className +' current'] = moment.isSame(scope.today, unit);
@@ -271,17 +271,22 @@ angular.module('moment')
 
   return {
     restrict: 'A',
-    require: ['picker', '?ngModel'],
-    controller: ['$scope', function($scope) {
-      this.weeeee = 'asd';
-    }],
+    require: ['?ngModel'],
     link: function(scope, element, attr, ctrl) {
-      console.log('!', ctrl);
       if (!ctrl || attr.type !== 'moment')
         return;
 
       var pickerAttrs = [ defaultStyleAttr ],
-          pickerElem, pickerScope, pickerCtrl;
+          pickerElem, pickerScope, pickerCtrl,
+          deregisterWatch;
+
+      function init() {
+        deregisterWatch();
+        pickerScope = pickerElem.isolateScope();
+        pickerCtrl  = pickerElem.controller('momentPicker');
+        pickerCtrl.setVisibility(false);
+        pickerScope.showClose = true;
+      }
 
       // Copy relevent attrs from input to picker
       if (attr.picker)
@@ -292,21 +297,16 @@ angular.module('moment')
           pickerAttrs.push(toSpinalCase(name) +'="'+ attr[name] +'"');
       });
 
-      // 'ngShow' state tracking
-      if (!scope.$momentPicker)
-        scope.$momentPicker = {};
-      scope.$momentPicker[attr.ngModel] = false;
-      pickerAttrs.push('ng-show="$momentPicker[\''+ attr.ngModel +'\']"');
-
       // Compile/inject/bind events to picker
       pickerElem = $compile('<div moment-picker="'+ attr.ngModel +'" '+ pickerAttrs.join(' ') +'></div>')(scope);
 
-      var deregister = scope.$watch(function(){
-        pickerCtrl = pickerElem.controller('momentPicker');
-        if (pickerCtrl) deregister();
+      // Watch for controller instantiation
+      deregisterWatch = scope.$watch(function() {
+        if (pickerElem.controller('momentPicker'))
+          init();
       });
 
-
+      // DOM manipulation and event watching
       angular.element(document.body).append(pickerElem);
 
       pickerElem.on('mousedown', function(event) {
@@ -322,17 +322,13 @@ angular.module('moment')
           top: offset.bottom + 'px'
         });
 
-        scope.$apply(function(scope) {
-          scope.$momentPicker[attr.ngModel] = true;
-        });
+        pickerCtrl.setVisibility(true);
       });
 
       element.on('blur keydown', function(event) {
         if (event.type == 'keydown' && event.which !== 27)
           return;
-        scope.$apply(function(scope) {
-          scope.$momentPicker[attr.ngModel] = false;
-        });
+        pickerCtrl.setVisibility(false);
       });
 
       // Destruction cleanup
