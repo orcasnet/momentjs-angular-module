@@ -2,7 +2,6 @@
   Angular Moment.js Moment Picker
 */
 
-// TODO: No test coverage :(
 // TODO: A concept of 'interval' instead of 'unit', and a way of setting the display bounds? E.g., mid-month month-end picker.
 
 'use strict';
