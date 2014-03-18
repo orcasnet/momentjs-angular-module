@@ -174,6 +174,15 @@ describe('momentPicker directive', function () {
         expect(ctrl.displayMoment.isSame($moment(), 'minute')).toBeTruthy();
       });
 
+      it('setDisplayMoment should unset when passed an invalid argument', function() {
+        var picker = compileHtml('<div moment-picker="date"></div>'),
+            ctrl   = picker.controller('momentPicker');
+
+        ctrl.setDisplayMoment('01/01/2000');
+        ctrl.setDisplayMoment('*<(8^D)');
+        expect(ctrl.displayMoment.isSame($moment(), 'minute')).toBeTruthy();
+      });
+
 
 
       it('setPickedMoment should set pickedMoment from string', function() {
@@ -215,6 +224,15 @@ describe('momentPicker directive', function () {
 
         ctrl.setPickedMoment('01/01/2000');
         ctrl.setPickedMoment();
+        expect(ctrl.pickedMoment).toBeFalsy();
+      });
+
+      it('setPickedMoment should unset when passed an invalid argument', function() {
+        var picker = compileHtml('<div moment-picker="date"></div>'),
+            ctrl   = picker.controller('momentPicker');
+
+        ctrl.setPickedMoment('01/01/2000');
+        ctrl.setPickedMoment('*<(8^D)');
         expect(ctrl.pickedMoment).toBeFalsy();
       });
 
@@ -284,7 +302,30 @@ describe('momentPicker directive', function () {
             ctrl   = picker.controller('momentPicker');
 
         expect(ctrl.format).toBe('MM/DD/YYYY');
+      });
 
+      it('"format" should unset controller.format to $defaultModelFormat when empty', function() {
+        $scope.$apply(function() { $scope.format = 'YYYY'; });
+
+        var picker = compileHtml('<div moment-picker="date" format="format"></div>'),
+            ctrl   = picker.controller('momentPicker');
+
+        $scope.$apply(function() { $scope.format = ''; });
+
+        expect(ctrl.format).toBe($moment.$defaultModelFormat);
+      });
+
+      it('"format" changes should reparse the date model', function() {
+        $scope.$apply(function() {
+          $scope.date   = '01/01/2000';
+          $scope.format = 'YYYY';
+        });
+
+        var picker = compileHtml('<div moment-picker="date" format="format"></div>'),
+            ctrl   = picker.controller('momentPicker');
+
+        $scope.$apply(function() { $scope.format = 'MM/DD/YYYY'; });
+        expect(ctrl.pickedMoment.isSame('01/01/2000')).toBeTruthy();
       });
 
       it('"min" should set controller.minMoment value', function() {
@@ -294,11 +335,31 @@ describe('momentPicker directive', function () {
         expect(ctrl.minMoment.isSame('01/01/2000')).toBeTruthy();
       });
 
+      it('"min" should unset controller.minMoment when empty', function() {
+        $scope.$apply(function() { $scope.min = '01/01/2000'; });
+
+        var picker = compileHtml('<div moment-picker="date" min="min"></div>'),
+            ctrl   = picker.controller('momentPicker');
+
+        $scope.$apply(function() { $scope.min = ''; });
+        expect(ctrl.minMoment).toBeFalsy();
+      });
+
       it('"max" should set controller.maxMoment value', function() {
         var picker = compileHtml('<div moment-picker="date" max="\'01/01/2000\'"></div>'),
             ctrl   = picker.controller('momentPicker');
 
         expect(ctrl.maxMoment.isSame('01/01/2000')).toBeTruthy();
+      });
+
+      it('"max" should unset controller.maxMoment when empty', function() {
+        $scope.$apply(function() { $scope.max = '01/01/2000'; });
+
+        var picker = compileHtml('<div moment-picker="date" max="max"></div>'),
+            ctrl   = picker.controller('momentPicker');
+
+        $scope.$apply(function() { $scope.max = ''; });
+        expect(ctrl.maxMoment).toBeFalsy();
       });
 
   });

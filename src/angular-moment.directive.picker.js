@@ -40,9 +40,9 @@ angular.module('moment')
         self.template = getTemplateDefinition($attr.template);
         self.format   = $moment.$defaultModelFormat;
 
-        self.pickedMoment  = Number.NaN;
-        self.maxMoment     = Number.NaN;
-        self.minMoment     = Number.NaN;
+        self.pickedMoment = Number.NaN;
+        self.maxMoment    = Number.NaN;
+        self.minMoment    = Number.NaN;
 
         self.visible = true;
         self.hidden  = false;
