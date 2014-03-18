@@ -47,6 +47,12 @@ angular.module('moment')
         self.hidden  = false;
 
         function init() {
+          $scope.today = $moment();
+          $scope.lastMonthMoments = [];
+          $scope.thisMonthMoments = [];
+          $scope.nextMonthMoments = [];
+          $scope.monthsThisYearMoments = [];
+
           self.setDisplayMoment($moment());
           rebuildScopeMoments();
 
@@ -176,19 +182,20 @@ angular.module('moment')
         // Private methods
 
         function rebuildScopeMoments() {
-          // TODO: Check if rebuild is necessary
+          var lastMonthMoment = self.displayMoment.clone().startOf('month'),
+              thisMonthMoment = lastMonthMoment.clone(),
+              nextMonthMoment = self.displayMoment.clone().endOf('month'),
+              thisMonth       = self.displayMoment.format('M'),
+              thisYear        = self.displayMoment.format('YYYY');
+
+          if ($scope.thisMonthMoments.length && thisMonthMoment.isSame($scope.thisMonthMoments[0]))
+            return;
 
           $scope.today                 = $moment();
           $scope.lastMonthMoments      = [];
           $scope.thisMonthMoments      = [];
           $scope.nextMonthMoments      = [];
           $scope.monthsThisYearMoments = [];
-
-          var lastMonthMoment = self.displayMoment.clone().startOf('month'),
-              thisMonthMoment = lastMonthMoment.clone(),
-              nextMonthMoment = self.displayMoment.clone().endOf('month'),
-              thisMonth       = self.displayMoment.format('M'),
-              thisYear        = self.displayMoment.format('YYYY');
 
           while (lastMonthMoment.format('d') !== weekStartDay)
             $scope.lastMonthMoments.unshift(lastMonthMoment.subtract(1, 'day').clone());
