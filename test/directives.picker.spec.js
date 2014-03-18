@@ -193,6 +193,75 @@ describe('momentPicker directive', function () {
         expect(ctrl.pickedMoment.isSame(ctrl.displayMoment)).toBeTruthy();
       });
 
+      it('setPickedMoment should unset', function() {
+        var picker = compileHtml('<div moment-picker="date"></div>'),
+            ctrl   = picker.controller('momentPicker');
+
+        ctrl.setPickedMoment('01/01/2000');
+        ctrl.setPickedMoment();
+        expect(ctrl.pickedMoment).toBeFalsy();
+      });
+
+
+
+
+
+
+      it('setMinMoment should set minMoment from string', function() {
+        var picker = compileHtml('<div moment-picker="date"></div>'),
+            ctrl   = picker.controller('momentPicker');
+
+        ctrl.setMinMoment('01/01/2000');
+        expect(ctrl.minMoment.isSame('01/01/2000')).toBeTruthy();
+      });
+
+      it('setMinMoment should set minMoment from moment object', function() {
+        var picker = compileHtml('<div moment-picker="date"></div>'),
+            ctrl   = picker.controller('momentPicker');
+
+        ctrl.setMinMoment($moment('01/01/2000').add(1, 'year'));
+        expect(ctrl.minMoment.isSame('01/01/2001')).toBeTruthy();
+      });
+
+      it('setMinMoment should unset', function() {
+        var picker = compileHtml('<div moment-picker="date"></div>'),
+            ctrl   = picker.controller('momentPicker');
+
+        ctrl.setMinMoment('01/01/2000');
+        ctrl.setMinMoment();
+        expect(ctrl.minMoment).toBeFalsy();
+      });
+
+
+
+      it('setMaxMoment should set maxMoment from string', function() {
+        var picker = compileHtml('<div moment-picker="date"></div>'),
+            ctrl   = picker.controller('momentPicker');
+
+        ctrl.setMaxMoment('01/01/2000');
+        expect(ctrl.maxMoment.isSame('01/01/2000')).toBeTruthy();
+      });
+
+      it('setMaxMoment should set maxMoment from moment object', function() {
+        var picker = compileHtml('<div moment-picker="date"></div>'),
+            ctrl   = picker.controller('momentPicker');
+
+        ctrl.setMaxMoment($moment('01/01/2000').add(1, 'year'));
+        expect(ctrl.maxMoment.isSame('01/01/2001')).toBeTruthy();
+      });
+
+      it('setMaxMoment should unset', function() {
+        var picker = compileHtml('<div moment-picker="date"></div>'),
+            ctrl   = picker.controller('momentPicker');
+
+        ctrl.setMaxMoment('01/01/2000');
+        ctrl.setMaxMoment();
+        expect(ctrl.maxMoment).toBeFalsy();
+      });
+
+
+
+
     });
 
 });
