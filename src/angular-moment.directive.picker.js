@@ -100,10 +100,11 @@ angular.module('moment')
 
         self.setDisplayMoment = function(input, format, lang, strict) {
           var moment  = $moment.apply(null, arguments),
-              isValid = input && moment.isValid();
+              isValid = input && moment.isValid(),
+              fallbackMoment = self.pickedMoment ? self.pickedMoment : $moment();
 
-          self.displayMoment   = isValid ? moment.clone() : $moment();
-          $scope.displayMoment = isValid ? moment.clone() : $moment();
+          self.displayMoment   = isValid ? moment.clone() : fallbackMoment.clone();
+          $scope.displayMoment = isValid ? moment.clone() : fallbackMoment.clone();
 
           rebuildScopeMoments();
         };
@@ -157,7 +158,7 @@ angular.module('moment')
         }
 
         if ($attr.max) {
-          $attr.$observe($attr.max, function(maxValue) {
+          $scope.$watch($attr.max, function(maxValue) {
             var isArray = angular.isArray(maxValue);
             self.setMaxMoment.apply(null, isArray ? maxValue : [maxValue]);
           }, true);
