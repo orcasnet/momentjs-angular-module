@@ -285,6 +285,9 @@ angular.module('moment')
             hasFocus = true;
           }
 
+          if (element.attr('readonly'))
+            return;
+
           //                               Up|Dn
           if (!hasFocus || (event.type == 'keydown' && !/38|40/.test(event.which))) return;
           event.preventDefault();

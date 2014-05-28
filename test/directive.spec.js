@@ -372,6 +372,18 @@ describe('$moment', function () {
         expect(ctrl.$viewValue).toBe(yesterday);
       });
 
+      it('should not step if readonly attribute exists', function() {
+        var input     = compile('<input type="moment" ng-model="date" readonly>'),
+            ctrl      = input.controller('ngModel'),
+            today     = $moment().format('L'),
+            tomorrow  = $moment().add(1, 'day').format('L'),
+            yesterday = $moment().subtract(1, 'day').format('L');
+
+        ctrl.$setViewValue(today);
+        input.triggerHandler.apply(input, wheelUpEvent);
+        expect(ctrl.$viewValue).toBe(today);
+      });
+
       it('should step by one month if shift key is pressed', function() {
         var input     = compile(momentInput),
             ctrl                = input.controller('ngModel'),
