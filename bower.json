@@ -1,10 +1,10 @@
 {
-  "name": "angular-momentjs-module",
+  "name": "momentjs-angular-module",
   "version": "0.3.3",
-  "homepage": "https://github.com/orcasnet/angular-momentjs",
+  "homepage": "https://github.com/orcasnet/momentjs-angular-module",
   "authors": [
     "Shaun Grady <grady@shaungrady.com>",
-    "https://github.com/orcasnet/angular-momentjs/graphs/contributors"
+    "https://github.com/orcasnet/momentjs-angular-module/graphs/contributors"
   ],
   "description": "An AngularJS module to add Moment.js functionality to Angular.",
   "main": [
