@@ -98,7 +98,7 @@ angular.module('moment')
 
           self.pickedMoment   = moment.clone();
           $scope.pickedMoment = moment.clone();
-          $scope.dateModel    = moment.format(format);
+          $scope.dateModel    = moment.format(self.format);
 
           self.setDisplayMoment(moment);
         };
