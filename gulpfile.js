@@ -13,6 +13,8 @@ var jsFiles = [
   './src/angular-moment.directive.*.js',
 ];
 
+gulp.task('default', ['build']);
+
 // Task to run during development
 gulp.task('develop', function() {
   gulp.watch(jsFiles, ['js']);
