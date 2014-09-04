@@ -1,6 +1,6 @@
 {
-  "name": "angular-momentjs",
-  "version": "0.3.2",
+  "name": "angular-momentjs-module",
+  "version": "0.3.3",
   "homepage": "https://github.com/orcasnet/angular-momentjs",
   "authors": [
     "Shaun Grady <grady@shaungrady.com>",
@@ -16,7 +16,6 @@
     "momentjs"
   ],
   "license": "MIT",
-  "private": false,
   "ignore": [
     "**/.*",
     "node_modules",
