@@ -4,12 +4,6 @@ Angular Moment.js Module
 
 An AngularJS module to add Moment.js functionality to Angular. No jQuery necessary!<br>
 
-## Features at a Glance
-* `$moment` service for configuring module-wide settings, such as the default model and view date formats.
-* `input[type=moment]` directive for validating dates and translating date formats from the view to the model and back. Additionally, the directive adds support for specifying a `min` and `max` date as well as stepping dates with your mouse wheel or keyboard (up, down, plus, or minus). 
-
-More features are planned, including a suite of filters and a date picker.
-
 ## Requirements
 * [Moment.js] [1] v2.3.0+ (v2.5.1+ recommended)
 * [AngularJS] [2] v1.2.0+
@@ -17,26 +11,11 @@ More features are planned, including a suite of filters and a date picker.
 [1]: http://momentjs.com/
 [2]: http://angularjs.org/
 
-## Installing
-After including the module script on your page, declare `moment` as a dependency of your app:
-```
-angular.module('myApp', ['moment']);
-```
+## Documentation
 
-## Usage
+Please see the [Project Wiki] [3] for documentation.
+[3]: https://github.com/orcasnet/momentjs-angular-module/wiki
 
-### $momentProvider
-Used to configure defaults across the module.
-#### Methods
-
-* **defaultModelFormat(**`string`**)**<br> Set the default Moment format to be used for the model value. Defaults to `moment.defaultFormat`, which is ISO8601 out-of-the-box (`YYYY-MM-DDTHH:mm:ssZ`).
-
-* **defaultViewFormat(**`string`**)**<br> Set the default Moment format to be used for the view value. Defaults to `L`, a locale dependent format set to `MM/DD/YYYY` for `moment.lang('en')`.
-
-* **strictModel(**`boolean`**)**<br> Set whether model date values should be parsed strictly or not. Strict parsing requires that the format and input match exactly. Defaults to `true`.
-
-* **strictView(**`boolean`**)**<br> Set whether view date values should be parsed strictly. Strict parsing requires that the format and input match exactly. Defaults to `true`.
- 
 
 ### Directive
 ``` html
