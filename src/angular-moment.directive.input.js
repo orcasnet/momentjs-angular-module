@@ -57,7 +57,10 @@ angular.module('moment')
         /////////////////////
 
         var setPlaceholder = function(format) {
-          element.attr('placeholder', $moment.$parseFormat(format));
+          var ph = element.attr('placeholder');
+          if( ph === null || ph === '' ){
+            element.attr('placeholder', $moment.$parseFormat(format));
+          }
         };
 
         var reparseOrReformatValue = function() {
