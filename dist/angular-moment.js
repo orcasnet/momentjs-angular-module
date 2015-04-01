@@ -1,4 +1,4 @@
-//!  Angular Moment.js v0.3.3
+//!  Angular Moment.js v0.3.4
 //!  https://github.com/shaungrady/angular-momentjs
 //!  (c) 2014 Shaun Grady
 //!  License: MIT
@@ -256,10 +256,8 @@ angular.module('moment')
         /////////////////////
 
         var setPlaceholder = function(format) {
-          var ph = element.attr('placeholder');
-          if( ph === null || ph === '' ){
+          if (!element.attr('placeholder'))
             element.attr('placeholder', $moment.$parseFormat(format));
-          }
         };
 
         var reparseOrReformatValue = function() {
