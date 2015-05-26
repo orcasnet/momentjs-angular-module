@@ -1,6 +1,6 @@
 Angular Moment.js Module 
 ================
-**Version 0.3.4** - Apr. 1, 2015
+**Version 0.3.5** - May 26, 2015
 
 An AngularJS module to add Moment.js functionality to Angular. No jQuery necessary!<br>
 
