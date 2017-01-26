@@ -1,0 +1,17 @@
+engines:
+  eslint:
+    enabled: true
+    channel: "eslint-3"
+    config:
+      config: .eslintrc.json
+
+ratings:
+  paths:
+  - "src/**/*.js"
+
+ecmaFeatures:
+  modules: true
+
+env:
+  amd: true
+  browser: true

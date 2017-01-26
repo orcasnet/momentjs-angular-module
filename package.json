@@ -1,35 +1,56 @@
 {
   "name": "momentjs-angular-module",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "An AngularJS module to add Moment.js functionality to Angular.",
   "author": "Shaun Grady <grady@shaungrady.com>",
   "license": "MIT",
   "homepage": "https://github.com/orcasnet.com/angular-momentjs",
-  "main": "src/angular-moment.js",
-  "dependencies": {},
-  "devDependencies": {
-    "gulp": "~3.8.0",
-    "gulp-util": "~2.2.12",
-    "gulp-clean": "~0.2.4",
-    "gulp-concat": "~2.1.7",
-    "gulp-karma": "0.0.2",
-    "gulp-rename": "~0.2.2",
-    "gulp-uglify": "~0.2.0",
-    "karma": "~0.10",
-    "karma-coverage": "~0.1",
-    "karma-jasmine": "0.1",
-    "karma-chrome-launcher": "~0.1",
-    "karma-safari-launcher": "~0.1",
-    "karma-firefox-launcher": "~0.1",
-    "karma-ng-html2js-preprocessor": "~0.1.0"
-  },
+  "main": "./lib",
   "scripts": {
-    "build": "gulp build",
-    "develop": "gulp develop",
-    "test": "gulp test"
+    "bundle": "webpack && npm run bundle-umd",
+    "bundle-umd": "webpack --config webpack.config.browser.js && webpack --config webpack.config.browser-min.js",
+    "test": "karma start && eslint .",
+    "pretest": "rm -rf ./coverage/",
+    "test-start": "karma start --no-single-run",
+    "patch": "npm version patch -m '%s'",
+    "minor": "npm version minor -m '%s'",
+    "version": "rm -rf lib/ dist/ && npm run bundle && git add -A lib/ dist/"
+  },
+  "dependencies": {
+    "indexof": "^0.0.1"
+  },
+  "devDependencies": {
+    "angular": "~1.6",
+    "angular-mocks": "~1.6",
+    "bootstrap-css-only": "^3.3.7",
+    "codeclimate-test-reporter": "^0.4.0",
+    "eslint": "^3.14.0",
+    "eslint-config-standard": "^6.2.1",
+    "eslint-plugin-promise": "^3.4.0",
+    "eslint-plugin-standard": "^2.0.1",
+    "istanbul-instrumenter-loader": "^1.2.0",
+    "jasmine-core": "^2.5.2",
+    "karma": "^1.4.0",
+    "karma-coverage": "^1.1.1",
+    "karma-jasmine": "^1.1.0",
+    "karma-ng-html2js-preprocessor": "^1.0.0",
+    "karma-phantomjs-launcher": "^1.0.2",
+    "karma-sourcemap-loader": "^0.3.7",
+    "karma-webpack": "^2.0.1",
+    "moment": "~2.6.0",
+    "webpack": "^2.2"
   },
   "repository": {
     "type": "git",
     "url": "git://github.com/orcasnet.com/angular-momentjs.git"
-  }
+  },
+  "peerDependencies": {
+    "angular": ">=1.2 <1.7",
+    "moment": "<2.6"
+  },
+  "files": [
+    "lib/*.js",
+    "release/angular-moment.js",
+    "readme.md"
+  ]
 }

@@ -1,4 +1,4 @@
-Angular Moment.js Module 
+Angular Moment.js Module
 ================
 **Version 0.3.5** - May 26, 2015
 
@@ -42,29 +42,3 @@ Please see the [Project Wiki] [3] for documentation.
 | step *(optional)*        | String      | `1 day` | Specify a quantity and a unit of time to step the date by on mouse wheel up/down, up/down arrow keys, or plus/minus keys. Pressing shift causes the date to step by one greater or lesser unit of time. |
 
 Note that all parameters can be bound data-bound and dynamic. If `modelFormat` is changed, the view value will be reparsed to provide the new format for the model value, and conversely if `viewFormat` is changed.
-
-
-## Contributing
-Please feel welcome to contribute by forking this repo, creating a new branch, and issuing a pull request. Please try to write tests to accompany your contribution. To get up and running for development:
-```
-npm install -g grunt-cli
-npm install
-bower install
-```
-
-### Task Running
-
-To develop:
-```
-gulp develop
-```
-
-To build:
-```
-gulp build
-```
-
-To test:
-```
-gulp test
-```

@@ -1,61 +1,68 @@
-// Karma configuration
-// http://karma-runner.github.io/0.10/config/configuration-file.html
+const path = require('path')
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
-    // base path, that will be used to resolve files and exclude
-    basePath: './',
-
-    // testing framework to use (jasmine/mocha/qunit/...)
+    basePath: '',
     frameworks: ['jasmine'],
+    files: [
+      'node_modules/angular/angular.js',
+      'node_modules/angular-mocks/angular-mocks.js',
+      'node_modules/moment/moment.js',
+      'src/index.js',
+      'test/*.spec.js',
+      'templates/*.html'
+    ],
+    exclude: [],
 
-    preprocessors : {
-      '**/src/*.js': 'coverage',
-      'templates/*.html': 'ng-html2js'
+    preprocessors: {
+      'src/index.js': ['webpack', 'sourcemap'],
+      'test/*.spec.js': ['webpack', 'sourcemap'],
+      'templates/*.html': ['ng-html2js']
     },
 
-    // list of files / patterns to load in the browser
-    files: [
-      'bower_components/angular/angular.js',
-      'bower_components/angular-mocks/angular-mocks.js',
-      'bower_components/momentjs/moment.js',
-      'dist/angular-moment.js',
-      'test/*.spec.js',
-      'templates/*.html',
-    ],
+    webpack: {
+      externals: {
+        angular: 'angular',
+        moment: 'moment'
+      },
+      module: {
+        rules: [{
+          test: /\.js$/,
+          include: path.resolve(__dirname, 'src'),
+          exclude: /node_modules/,
+          enforce: 'post',
+          loader: 'istanbul-instrumenter-loader',
+          options: {
+            esModules: true
+          }
+        }]
+      },
+      devtool: 'inline-source-map'
+    },
+    webpackMiddleware: {
+      stats: 'minimal'
+    },
 
     ngHtml2JsPreprocessor: {
       moduleName: 'templates'
     },
 
-    // list of files / patterns to exclude
-    exclude: [],
+    reporters: ['progress', 'coverage'],
+    coverageReporter: {
+      dir: 'coverage',
+      reporters: [{
+        type: 'lcov',
+        subdir: '.'
+      }]
+    },
 
-    // web server port
-    port: 8080,
-
-    // level of logging
-    // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
+    port: 9876,
+    colors: true,
+    // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
     logLevel: config.LOG_INFO,
-
-    // enable / disable watching file and executing tests whenever any file changes
-    autoWatch: false,
-
-    // Start these browsers, currently available:
-    // - Chrome
-    // - ChromeCanary
-    // - Firefox
-    // - Opera
-    // - Safari (only Mac)
-    // - PhantomJS
-    // - IE (only Windows)
+    autoWatch: true,
     browsers: ['PhantomJS'],
-    // browsers: ['Firefox'],
-
-    // Continuous Integration mode
-    // if true, it capture browsers, run tests and exit
     singleRun: true,
-
-    reporters : ['progress', 'coverage']
-  });
-};
+    concurrency: Infinity
+  })
+}

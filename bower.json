@@ -1,6 +1,6 @@
 {
   "name": "momentjs-angular-module",
-  "version": "0.3.5",
+  "version": "0.4.0",
   "homepage": "https://github.com/orcasnet/momentjs-angular-module",
   "authors": [
     "Shaun Grady <grady@shaungrady.com>",
@@ -24,11 +24,7 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "~1.2.x",
+    "angular": "~1.2-~1.6",
     "momentjs": "~2.5.x"
-  },
-  "devDependencies": {
-    "angular-mocks": "~1.x",
-    "bootstrap-css": "2.3.2"
   }
 }

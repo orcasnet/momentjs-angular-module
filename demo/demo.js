@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('demoApp', ['moment'])
+angular.module('demoApp', ['$moment'])
 .config(['$momentProvider', function($momentProvider) {
   $momentProvider
     .definePickerTemplate({
