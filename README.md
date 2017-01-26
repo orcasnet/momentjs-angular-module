@@ -1,6 +1,9 @@
 Angular Moment.js Module
 ================
-**Version 0.3.5** - May 26, 2015
+[![Build Status](https://travis-ci.org/orcasnet/momentjs-angular-module.svg?branch=master)](https://travis-ci.org/orcasnet/momentjs-angular-module)
+[![Code Climate](https://codeclimate.com/repos/5888f1ccbc250579f400046c/badges/6fdcc932c5e23e0fad1d/gpa.svg)](https://codeclimate.com/repos/5888f1ccbc250579f400046c/feed)
+[![Test Coverage](https://codeclimate.com/repos/5888f1ccbc250579f400046c/badges/6fdcc932c5e23e0fad1d/coverage.svg)](https://codeclimate.com/repos/5888f1ccbc250579f400046c/coverage)
+
 
 An AngularJS module to add Moment.js functionality to Angular. No jQuery necessary!<br>
 
