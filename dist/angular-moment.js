@@ -1,5 +1,5 @@
 /**
- * momentjs-angular-module v0.4.0
+ * momentjs-angular-module v0.4.1
  * Shaun Grady <grady@shaungrady.com>, 2017
  * https://github.com/orcasnet.com/angular-momentjs
  * Module Format: Universal Module Definition
@@ -118,7 +118,7 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
       if (tAttr.type !== 'date' && tAttr.type !== 'moment') { return __WEBPACK_IMPORTED_MODULE_0_angular___default.a.noop }
       return function inputPostLink (scope, element, attr, ctrl) {
         // All the functionality of this directive requires ngModelCtrl.
-        if (!ctrl) { return }
+        if (!ctrl) return
 
         // A Moment of the last value passed through the directive's validator. Allows
         // stepping function to not have to reparse ctrl.$viewValue and potentially fail
@@ -146,11 +146,15 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
           }
         }
 
+        var setPlaceholder = __WEBPACK_IMPORTED_MODULE_0_angular___default.a.noop
+
         // Utility Functions
         // ///////////////////
 
-        var setPlaceholder = function (format) {
-          if (!element.attr('placeholder')) { element.attr('placeholder', $moment.$parseFormat(format)) }
+        if (element.attr('placeholder') == null) {
+          setPlaceholder = function (format) {
+            element.attr('placeholder', $moment.$parseFormat(format))
+          }
         }
 
         var reparseOrReformatValue = function () {
@@ -161,7 +165,11 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
         }
 
         var reparseViewValue = function () {
-          if (!ctrl.$isEmpty(ctrl.$viewValue)) { ctrl.$setViewValue(ctrl.$viewValue) }
+          if (!ctrl.$isEmpty(ctrl.$viewValue)) {
+            var val = ctrl.$viewValue
+            ctrl.$setViewValue(val + ' ')
+            ctrl.$setViewValue(val)
+          }
         }
         var reformatModelValue = function () {
           // Is there a better way to resend the model value through the formatter pipeline?
@@ -337,8 +345,7 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
 
         var inputStepHandler = function (event, eventData) {
           // Allow for passing custom event object in tests (so Kosher)
-          // TODO: Use gulp-remove-lines to strip this from build
-          if (!event.type && eventData && eventData.type) {
+          if (eventData && (eventData.type || eventData.which)) {
             __WEBPACK_IMPORTED_MODULE_0_angular___default.a.extend(event, eventData)
             hasFocus = true
           }
@@ -607,9 +614,7 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
           while ($scope.lastMonthMoments.length + $scope.thisMonthMoments.length + $scope.nextMonthMoments.length < 42) { $scope.nextMonthMoments.push(nextMonthMoment.add(1, 'day').clone()) }
 
           while ($scope.monthsThisYearMoments.length < 12) {
-            $scope.monthsThisYearMoments.push(
-              $moment({ year: thisYear, month: $scope.monthsThisYearMoments.length })
-            )
+            $scope.monthsThisYearMoments.push($moment({ year: thisYear, month: $scope.monthsThisYearMoments.length }))
           }
         }
 
@@ -639,8 +644,16 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
           var name = className.split('-')[0]
           var unit = className.split('-')[1] || ctrl.template.unit
 
-          if (scope.pickedMoment && name === 'picked') { classObject[className] = moment.isSame(scope.pickedMoment, ctrl.template.unit) } else if (name === 'current') { classObject[className + ' current'] = moment.isSame(scope.today, unit) } else if (name === 'invalid' && (ctrl.minMoment || ctrl.maxMoment)) {
-            if (ctrl.minMoment && moment.isBefore(ctrl.minMoment, unit)) { classObject[className + ' invalid'] = true } else if (ctrl.maxMoment && moment.isAfter(ctrl.maxMoment, unit)) { classObject[className + ' invalid'] = true }
+          if (scope.pickedMoment && name === 'picked') {
+            classObject[className] = moment.isSame(scope.pickedMoment, ctrl.template.unit)
+          } else if (name === 'current') {
+            classObject[className + ' current'] = moment.isSame(scope.today, unit)
+          } else if (name === 'invalid' && (ctrl.minMoment || ctrl.maxMoment)) {
+            if (ctrl.minMoment && moment.isBefore(ctrl.minMoment, unit)) {
+              classObject[className + ' invalid'] = true
+            } else if (ctrl.maxMoment && moment.isAfter(ctrl.maxMoment, unit)) {
+              classObject[className + ' invalid'] = true
+            }
           }
         })
 
@@ -751,8 +764,8 @@ module.exports = __WEBPACK_EXTERNAL_MODULE_0__;
   // String: Moment output format (defaults to defaultViewFormat)
   // Array: Moment input format, moment output format, [strict]
   return function momentFormatFilter (date, format) {
-    var moment, strict, inputFormat,
-      outputFormat = $moment.$defaultViewFormat
+    var moment, strict, inputFormat
+    var outputFormat = $moment.$defaultViewFormat
 
     if (!__WEBPACK_IMPORTED_MODULE_0_angular___default.a.isDefined(date)) { return date }
 
@@ -910,7 +923,7 @@ function getOffset (elem) {
   boxElem.style.width = '1px'
 
   bodyElem.appendChild(boxElem)
-  isBoxModel = boxElem.offsetWidth == 2
+  isBoxModel = boxElem.offsetWidth === 2
   bodyElem.removeChild(boxElem)
   boxElem = elem.getBoundingClientRect()
 
@@ -953,7 +966,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__service__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__filter__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__directive_input__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__directive_inputPicker__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__directive_momentPicker__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__directive_picker__ = __webpack_require__(3);
 
 
@@ -968,8 +981,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
   .provider('$moment', __WEBPACK_IMPORTED_MODULE_1__service__["a" /* default */])
   .filter('momentFormat', __WEBPACK_IMPORTED_MODULE_2__filter__["a" /* default */])
   .directive('input', __WEBPACK_IMPORTED_MODULE_3__directive_input__["a" /* default */])
-  .directive('inputPicker', __WEBPACK_IMPORTED_MODULE_4__directive_inputPicker__["a" /* default */])
-  .directive('momentPicker', __WEBPACK_IMPORTED_MODULE_5__directive_picker__["a" /* default */])
+  .directive('picker', __WEBPACK_IMPORTED_MODULE_5__directive_picker__["a" /* default */])
+  .directive('momentPicker', __WEBPACK_IMPORTED_MODULE_4__directive_momentPicker__["a" /* default */])
   .name;
 
 
