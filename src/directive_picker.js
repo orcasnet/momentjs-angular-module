@@ -32,7 +32,12 @@ export default ['$moment', '$compile', function inputDirective ($moment, $compil
       if (attr.picker) { pickerAttrs.push('template=' + attr.picker) }
 
       angular.forEach(copiedAttrs, function (name) {
-        if (attr[name]) { pickerAttrs.push(toSpinalCase(name) + '="' + attr[name] + '"') }
+        if (attr[name]) {
+          // Ensure single-quoted element value weirdos don't break things
+          // when they use double quotes inside the value
+          var value = attr[name].replace(/"/g, '\'')
+          pickerAttrs.push(toSpinalCase(name) + '="' + value + '"')
+        }
       })
 
       // Compile/inject/bind events to picker
