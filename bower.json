@@ -8,8 +8,7 @@
   ],
   "description": "An AngularJS module to add Moment.js functionality to Angular.",
   "main": [
-    "angular.js",
-    "moment.js"
+    "angular.js"
   ],
   "keywords": [
     "angularjs",
@@ -24,7 +23,7 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "~1.2-~1.6",
+    "angular": "1.2 - 1.6",
     "momentjs": "~2.5.x"
   }
 }
