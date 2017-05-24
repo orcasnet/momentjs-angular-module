@@ -1,6 +1,6 @@
 {
   "name": "momentjs-angular-module",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "An AngularJS module to add Moment.js functionality to Angular.",
   "author": "Shaun Grady <grady@shaungrady.com>",
   "license": "MIT",

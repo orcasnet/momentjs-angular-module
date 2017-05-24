@@ -1,5 +1,5 @@
 /**
- * momentjs-angular-module v0.4.2
+ * momentjs-angular-module v0.4.3
  * Shaun Grady <grady@shaungrady.com>, 2017
  * https://github.com/orcasnet.com/angular-momentjs
  * Module Format: Universal Module Definition
