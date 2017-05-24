@@ -8,8 +8,8 @@ Angular Moment.js Module
 An AngularJS module to add Moment.js functionality to Angular. No jQuery necessary!<br>
 
 ## Requirements
-* [Moment.js] [1] v2.3.0+ (v2.5.1+ recommended)
-* [AngularJS] [2] v1.2.0+
+* [Moment.js][1] v2.3.0+ (v2.5.1+ recommended)
+* [AngularJS][2] v1.2.0+
 
 [1]: http://momentjs.com/
 [2]: http://angularjs.org/
