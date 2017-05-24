@@ -8,8 +8,7 @@
   ],
   "description": "An AngularJS module to add Moment.js functionality to Angular.",
   "main": [
-    "angular.js",
-    "moment.js"
+    "angular.js"
   ],
   "keywords": [
     "angularjs",
